@@ -30,10 +30,8 @@
 use anyhow::anyhow;
 use db::DB;
 
-use crate::app::JSON_GH_REPO_LIST;
 pub use crate::{
     app::{AppError, Result},
-    db::FSReadWrite,
     gh::{GitCliOps, GitRepo, RepositoryTopic},
 };
 
@@ -52,13 +50,10 @@ pub fn main() -> app::Result<(), app::AppError> {
 //------------------------------------------------------------------------------
 
 pub fn try_main() -> app::Result<(), app::AppError> {
-    let mut dashboard = app::App { config: config::Config {}, db: DB { data: None } };
+    let mut dashboard =
+        app::App { config: config::Config {}, db: DB { data: None, repo_list: None } };
 
     dashboard.db.fetch_gh_repo_list_json()?;
-    dashboard.db.read(std::path::Path::new(JSON_GH_REPO_LIST))?;
-
-    // Current count of github `Source` repositories.
-    dbg!(&dashboard.db.data.unwrap().len());
 
     Ok(())
 }
@@ -116,7 +111,10 @@ pub mod app {
     pub(crate) const PKG_NAME: &str = env!("CARGO_PKG_NAME");
 
     /// Path to `gh` cli output for `repo list` command.
-    pub(crate) const JSON_GH_REPO_LIST: &str = "gh_repo_list.json";
+    pub(crate) const PATH_JSON_GH_REPO_LIST: &str = "gh_repo_list.json";
+
+    /// Path to markdown output for the list of `repo list` items.
+    pub(crate) const PATH_MD_OUTPUT: &str = "test_readme.md";
 
     pub(crate) const ARGS_GH_REPO_LIST_JSON: &[&str] = &[
         "createdAt",
@@ -145,7 +143,10 @@ pub mod config {
 //------------------------------------------------------------------------------
 
 pub mod db {
-    use std::path::Path;
+    use std::{
+        fs::{File, OpenOptions},
+        path::Path,
+    };
 
     use serde::{Deserialize, Serialize};
     use xshell::{cmd, Shell};
@@ -153,12 +154,13 @@ pub mod db {
     use super::Result;
     use crate::{
         app::{AppError, ARGS_GH_REPO_LIST_JSON},
-        gh::{self, GitCliOps, GitRepo},
+        gh::{self, GitCliOps, GitRepo, GitRepoListItem},
     };
 
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct DB {
         pub data: Option<Vec<gh::GitRepo>>,
+        pub repo_list: Option<Vec<GitRepoListItem>>,
     }
 
     impl GitCliOps for DB {
@@ -171,18 +173,6 @@ pub mod db {
 
             let repos_struct_de: Vec<GitRepo> = serde_json::from_str(&repos_json_str_ser).unwrap();
             self.data = Some(repos_struct_de);
-
-            Ok(())
-        }
-    }
-
-    pub trait FSReadWrite {
-        fn read(&mut self, path: &Path) -> Result<(), AppError>;
-    }
-
-    impl FSReadWrite for DB {
-        fn read(&mut self, path: &Path) -> Result<(), AppError> {
-            dbg!(&self, &path);
 
             Ok(())
         }
@@ -211,6 +201,17 @@ pub mod gh {
         pub stargazer_count: u32,
         pub updated_at: String,
         pub url: String,
+    }
+
+    #[derive(Clone, Debug, Deserialize, Serialize)]
+    #[serde(rename_all = "camelCase")] // https://serde.rs/attr-rename.html
+    pub struct GitRepoListItem {
+        /// Repository name.
+        pub name: String,
+        /// URL of the git repo.
+        pub url: String,
+        /// Description of the repository.
+        pub description: String,
     }
 
     #[derive(Clone, Debug, Deserialize, Serialize)]
