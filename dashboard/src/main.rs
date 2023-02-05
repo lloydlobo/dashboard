@@ -170,8 +170,10 @@ pub mod db {
             let opts_json_args: String = ARGS_GH_REPO_LIST_JSON.join(",");
             let repos_json_str_ser: String =
                 cmd!(sh, "gh repo list --source -L 999 --json {opts_json_args} ").read().unwrap();
+            log::info!("Fetched `gh repo list`");
 
             let repos_struct_de: Vec<GitRepo> = serde_json::from_str(&repos_json_str_ser).unwrap();
+            log::info!("Deserialized {repos_struct_de:#?}");
             self.data = Some(repos_struct_de);
 
             Ok(())
