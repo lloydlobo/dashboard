@@ -28,6 +28,8 @@
 //!
 
 use anyhow::anyhow;
+use gh::Fetch;
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 //------------------------------------------------------------------------------
@@ -37,6 +39,9 @@ const PKG_NAME: &str = env!("CARGO_PKG_NAME");
 
 /// Path to `gh` cli output for `repo list` command.
 const JSON_GH_REPO_LIST: &str = "gh_repo_list.json";
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+struct App {}
 
 //------------------------------------------------------------------------------
 
@@ -52,8 +57,46 @@ fn main() -> Result<(), AppError> {
 
 //------------------------------------------------------------------------------
 
+const ARGS_GH_REPO_LIST_JSON: &[&str] = &[
+    "createdAt",
+    "description",
+    "diskUsage",
+    "id",
+    "name",
+    "pushedAt",
+    "repositoryTopics",
+    "sshUrl",
+    "stargazerCount",
+    "updatedAt",
+    "url",
+];
+
 fn try_main() -> Result<(), AppError> {
+    let mut app = App {};
+    let gh_args = ARGS_GH_REPO_LIST_JSON
+        .iter()
+        .map(ToString::to_string)
+        .collect();
+    app.fetch_gh_cli(gh_args)?;
     Ok(())
+}
+
+//------------------------------------------------------------------------------
+
+mod gh {
+    use crate::{App, AppError};
+
+    pub trait Fetch {
+        fn fetch_gh_cli(&mut self, gh_args: Vec<String>) -> Result<(), AppError>;
+    }
+
+    impl Fetch for App {
+        fn fetch_gh_cli(&mut self, gh_args: Vec<String>) -> Result<(), AppError> {
+            dbg!(gh_args);
+
+            Ok(())
+        }
+    }
 }
 
 //------------------------------------------------------------------------------

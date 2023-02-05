@@ -57,8 +57,8 @@ fn project_root() -> PathBuf {
 
 /// Removes a directory at this path, after removing all its contents. Use carefully!
 fn run_dist() -> Result<(), DynError> {
-    let _ = fs::remove_dir_all(&dist_dir());
-    fs::create_dir_all(&dist_dir())?;
+    let _ = fs::remove_dir_all(dist_dir());
+    fs::create_dir_all(dist_dir())?;
     dist_binary()?;
     dist_manpage()?;
     Ok(())
@@ -72,7 +72,7 @@ fn dist_binary() -> Result<(), DynError> {
     let cargo: String = env::var("CARGO").unwrap_or_else(|_| "cargo".to_string());
     let status: ExitStatus = Command::new(cargo)
         .current_dir(project_root())
-        .args(&["build", "--release"])
+        .args(["build", "--release"])
         .status()?;
 
     if !status.success() {
@@ -108,16 +108,13 @@ fn dist_manpage() -> Result<(), DynError> {
     let page = Manual::new(PKG_NAME)
         .about("Wave function collapse")
         .render();
-    fs::write(
-        dist_dir().join(format!("{PKG_NAME}.man")),
-        &page.to_string(),
-    )?;
+    fs::write(dist_dir().join(format!("{PKG_NAME}.man")), page)?;
 
     Ok(())
 }
 
 fn run_dist_doc() -> Result<(), DynError> {
-    let _ = fs::remove_dir_all(&dir_docs());
+    let _ = fs::remove_dir_all(dir_docs());
     dist_doc_xtask()?;
     Ok(())
 }
@@ -140,13 +137,13 @@ fn dist_doc_xtask() -> Result<(), DynError> {
     let cargo: String = env::var("CARGO").unwrap_or_else(|_| "cargo".to_string());
     let status: ExitStatus = Command::new(cargo)
         .current_dir(project_root())
-        .args(&["doc", "--release", "--no-deps", "--bin", PKG_NAME])
+        .args(["doc", "--release", "--no-deps", "--bin", PKG_NAME])
         .status()?;
     if !status.success() {
         Err("error: cargo doc failed")?;
     }
 
-    let copy_from: PathBuf = project_root().join(format!("target/doc").as_str());
+    let copy_from: PathBuf = project_root().join("target/doc");
     let copy_to = dir_docs();
     if Command::new("cp")
         .arg("--version")
@@ -156,7 +153,7 @@ fn dist_doc_xtask() -> Result<(), DynError> {
     {
         eprintln!("info: copying `target/doc` directory to `docs/`");
         let exit_status = Command::new("cp")
-            .args(&[
+            .args([
                 "-r",
                 &copy_from.to_string_lossy(),
                 &copy_to.to_string_lossy(),
@@ -169,10 +166,7 @@ fn dist_doc_xtask() -> Result<(), DynError> {
         eprintln!("error: no `cp` utility found")
     }
 
-    let arg_html = format!(
-        "<meta http-equiv=\"refresh\" content=\"0; url={}\">",
-        PKG_NAME
-    );
+    let arg_html = format!("<meta http-equiv=\"refresh\" content=\"0; url={PKG_NAME}\">",);
 
     // let new_html_index = "target/doc/index.html";
     let new_html_index_path = "docs/index.html";
