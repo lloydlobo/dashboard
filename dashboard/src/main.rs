@@ -9,6 +9,23 @@
 //! ```sh
 //! $ CARGO_LOG=error cargo r -p dashboard
 //! ```
+//!
+//! ### Data - Github API
+//!
+//! Output of Github CLI command `gh repo list` is serialized to `gh_repo_list.json`
+//!
+//! ### Parsed API - Markdown
+//!
+//! The detail of each git repository is appended as a list item to `README.md`:
+//!
+//! ```md
+//! * [name](url) — description
+//! ```
+//!
+//! * `name` - Repository name
+//! * `url` - Repository URL
+//! * `description` - Description of the repository
+//!
 
 use anyhow::anyhow;
 use thiserror::Error;
@@ -16,10 +33,10 @@ use thiserror::Error;
 //------------------------------------------------------------------------------
 
 /// Name of `dashboard` `package`in `/dashboard/Cargo.toml`.
-pub const PKG_NAME: &str = env!("CARGO_PKG_NAME");
+const PKG_NAME: &str = env!("CARGO_PKG_NAME");
 
 /// Path to `gh` cli output for `repo list` command.
-pub const JSON_GH_REPO_LIST: &str = "gh_repo_list.json";
+const JSON_GH_REPO_LIST: &str = "gh_repo_list.json";
 
 //------------------------------------------------------------------------------
 
