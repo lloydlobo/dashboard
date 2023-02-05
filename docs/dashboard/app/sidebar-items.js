@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":[["ARGS_GH_REPO_LIST_JSON",""],["FIELDS",""],["JSON_GH_REPO_LIST","Path to `gh` cli output for `repo list` command."],["PKG_NAME","Name of `dashboard` `package`in `/dashboard/Cargo.toml`."]],"enum":[["AppError","`AppError`"],["__Field",""]],"struct":[["App",""],["__FieldVisitor",""],["__Visitor",""]],"type":[["Result","`Result<T, E>`"]]};

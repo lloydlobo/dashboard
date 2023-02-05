@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":[["JSON_GH_REPO_LIST","Path to `gh` cli output for `repo list` command."],["PKG_NAME","Name of `dashboard` `package`in `/dashboard/Cargo.toml`."]],"enum":[["AppError","`AppError`"]],"fn":[["main",""],["try_main",""]],"type":[["Result","`Result<T, E>`"]]};
+window.SIDEBAR_ITEMS = {"fn":[["main",""],["try_main",""]],"mod":[["app",""],["config",""],["db",""],["gh",""]]};
