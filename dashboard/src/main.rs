@@ -38,7 +38,8 @@ pub use crate::{
 //------------------------------------------------------------------------------
 
 pub fn main() -> app::Result<(), app::AppError> {
-    pretty_env_logger::init();
+    let mut builder = pretty_env_logger::env_logger::builder();
+    builder.filter_level(log::LevelFilter::Info).init();
 
     if let Err(e) = try_main() {
         eprintln!("{}", anyhow!(e));
@@ -148,6 +149,7 @@ pub mod db {
         path::Path,
     };
 
+    use anyhow::{anyhow, Context};
     use serde::{Deserialize, Serialize};
     use xshell::{cmd, Shell};
 
@@ -166,14 +168,20 @@ pub mod db {
     impl GitCliOps for DB {
         fn fetch_gh_repo_list_json(&mut self) -> Result<(), AppError> {
             let sh = Shell::new().unwrap();
-
             let opts_json_args: String = ARGS_GH_REPO_LIST_JSON.join(",");
-            let repos_json_str_ser: String =
-                cmd!(sh, "gh repo list --source -L 999 --json {opts_json_args} ").read().unwrap();
-            log::info!("Fetched `gh repo list`");
 
-            let repos_struct_de: Vec<GitRepo> = serde_json::from_str(&repos_json_str_ser).unwrap();
-            log::info!("Deserialized {repos_struct_de:#?}");
+            let repos_json_ser: String =
+                cmd!(sh, "gh repo list --source -L 999 --json {opts_json_args}")
+                    .read()
+                    .context(anyhow!("Failed to fetch github repositories with `gh` utility"))
+                    .unwrap();
+            log::info!("Fetched repositories with command: `gh repo list`");
+
+            let repos_struct_de: Vec<GitRepo> = serde_json::from_str(&repos_json_ser)
+                .context(anyhow!("Failed to Deserialize repositories"))
+                .unwrap();
+            log::info!("Deserialized {} repositories", repos_struct_de.len());
+
             self.data = Some(repos_struct_de);
 
             Ok(())
