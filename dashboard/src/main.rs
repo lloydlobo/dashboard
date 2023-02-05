@@ -107,18 +107,28 @@ pub fn try_main() -> app::Result<(), app::AppError> {
 
 mod markdown {
     use std::{
+        fs,
         fs::{rename, File},
         io::{BufRead, BufReader, Write},
         path::Path,
+        time::Instant,
     };
+
+    use lazy_static::lazy_static;
 
     use crate::{gh::GitRepoListItem, AppError, Result};
 
     /// Word count limit for description.
     pub const DESC_WC: usize = 60;
 
+    lazy_static! {
+        static ref NEW_CONTENT: String = "* [Google](https://www.google.com) - Search engine\n\
+                          * [GitHub](https://github.com) - Web-based hosting service\n\
+                          * [Rust Programming Language](https://www.rust-lang.org) - System programming language".to_owned();
+    }
+
     /// Indicates if visitor is inside markdown start and end section blocks.
-    pub enum SectionState {
+    enum SectionState {
         OutsideSection,
         InSection,
     }
@@ -130,28 +140,48 @@ mod markdown {
         };
     }
 
-    fn update_markdown_file(path: &Path, section_tag: &str, content: &str) -> Result<(), AppError> {
+    /// This way, the function returns a Result which can be checked by the caller for success or
+    /// failure. The error type is Box<dyn std::error::Error>, which allows for the caller to handle
+    /// any type of error that may occur during the execution of the function. The code is more
+    /// concise and easier to read, with the use of a macro to simplify the comment block strings.
+    // new_lines.push_str("\n");
+    // new_file.push_str(NEW_CONTENT.as_str()); new_file.push_str("\n");
+    // new_file.push_str(&end_section); new_file.push_str("\n");
+    pub(crate) fn update_markdown_file(
+        file_path: &Path,
+        section_tag: &str,
+        new_content: &str,
+    ) -> Result<(), AppError> {
         let mut section_state = SectionState::OutsideSection;
         let mut new_lines: Vec<String> = Vec::new();
 
-        let file = File::open(path).unwrap();
-        let reader: BufReader<File> = BufReader::new(file);
+        let file = File::open(file_path).unwrap();
+        let reader = BufReader::new(file);
 
-        reader.lines().for_each(|line| match line.unwrap().as_str() {
-            line if line.contains(&comment_block!(section_tag, "START")) => {
+        for line in reader.lines() {
+            let line: String = line.unwrap();
+            if line.contains(&comment_block!(section_tag, "START")) {
                 section_state = SectionState::InSection;
                 new_lines.push(line.to_owned());
-                new_lines.push(content.to_owned());
-            }
-            line if line.contains(&comment_block!(section_tag, "END")) => {
+                new_lines.push(new_content.to_owned());
+            } else if line.contains(&comment_block!(section_tag, "END")) {
                 section_state = SectionState::OutsideSection;
                 new_lines.push(line.to_owned());
-            }
-            line if matches!(section_state, SectionState::OutsideSection) => {
+            } else if matches!(section_state, SectionState::OutsideSection) {
                 new_lines.push(line.to_owned());
             }
-            &_ => {}
-        });
+        }
+        {
+            let backup_file_path = format!("{}.bak", file_path.display());
+            if Path::new(file_path).exists() {
+                rename(file_path, &backup_file_path).unwrap();
+            }
+
+            let mut file = File::create(file_path).unwrap();
+            for line in new_lines {
+                writeln!(file, "{}", line).unwrap();
+            }
+        }
 
         Ok(())
     }
@@ -167,6 +197,62 @@ mod markdown {
                 false => format!("* [{}]({}) — {}", i.name, i.url, i.description),
             },
         }
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+
+        #[test]
+        fn test_update_markdown_file() {
+            let file_path = Path::new("test.md");
+            let section_name = "dashboard";
+            let new_content = "This is some new content.";
+            let expected_content = "This is some new content.\n";
+
+            update_markdown_file(file_path, section_name, new_content).unwrap();
+            let file = fs::read_to_string(file_path).unwrap();
+            assert_eq!(file, expected_content);
+
+            fs::remove_file(file_path).unwrap();
+        }
+
+        #[test]
+        fn test_update_md_file() {
+            let file_path = Path::new("test.md");
+            let section_name = "dashboard";
+            let new_content = "* [Google](https://www.google.com) - Search engine\n\
+                          * [GitHub](https://github.com) - Web-based hosting service\n\
+                          * [Rust Programming Language](https://www.rust-lang.org) - System programming language";
+            let expected_content = "* [Google](https://www.google.com) - Search engine\n\
+                          * [GitHub](https://github.com) - Web-based hosting service\n\
+                          * [Rust Programming Language](https://www.rust-lang.org) - System programming language\n";
+
+            update_markdown_file(file_path, section_name, new_content).unwrap();
+            let file = fs::read_to_string(file_path).unwrap();
+            assert_eq!(file, expected_content);
+
+            fs::remove_file(file_path).unwrap();
+        }
+    }
+
+    fn main() {
+        let file_path = Path::new("test.md");
+        let section_name = "dashboard";
+        let new_content = "* [Google](https://www.google.com) - Search engine\n\
+                      * [GitHub](https://github.com) - Web-based hosting service\n\
+                      * [Rust Programming Language](https://www.rust-lang.org) - System programming language";
+
+        if Path::new(file_path).exists() {
+            fs::remove_file(file_path).unwrap();
+        }
+
+        let start = Instant::now();
+        update_markdown_file(file_path, section_name, new_content).unwrap();
+        let duration = start.elapsed();
+        println!("Duration: {:?}", duration);
+
+        fs::remove_file(file_path).unwrap();
     }
 }
 
