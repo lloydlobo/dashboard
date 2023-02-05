@@ -106,11 +106,58 @@ pub fn try_main() -> app::Result<(), app::AppError> {
 }
 
 mod markdown {
-    use crate::gh::GitRepoListItem;
+    use std::{
+        fs::{rename, File},
+        io::{BufRead, BufReader, Write},
+        path::Path,
+    };
+
+    use crate::{gh::GitRepoListItem, AppError, Result};
+
+    /// Word count limit for description.
+    pub const DESC_WC: usize = 60;
+
+    /// Indicates if visitor is inside markdown start and end section blocks.
+    pub enum SectionState {
+        OutsideSection,
+        InSection,
+    }
+
+    #[macro_export]
+    macro_rules! comment_block {
+        ($section_name:expr, $marker:expr) => {
+            format!("<!--{}_SECTION:{}-->", $marker, $section_name)
+        };
+    }
+
+    fn update_markdown_file(path: &Path, section_tag: &str, content: &str) -> Result<(), AppError> {
+        let mut section_state = SectionState::OutsideSection;
+        let mut new_lines: Vec<String> = Vec::new();
+
+        let file = File::open(path).unwrap();
+        let reader: BufReader<File> = BufReader::new(file);
+
+        reader.lines().for_each(|line| match line.unwrap().as_str() {
+            line if line.contains(&comment_block!(section_tag, "START")) => {
+                section_state = SectionState::InSection;
+                new_lines.push(line.to_owned());
+                new_lines.push(content.to_owned());
+            }
+            line if line.contains(&comment_block!(section_tag, "END")) => {
+                section_state = SectionState::OutsideSection;
+                new_lines.push(line.to_owned());
+            }
+            line if matches!(section_state, SectionState::OutsideSection) => {
+                new_lines.push(line.to_owned());
+            }
+            &_ => {}
+        });
+
+        Ok(())
+    }
 
     /// Create and format a new markdown list item with repo name, url and its description.
     pub(crate) fn fmt_markdown_list_item(i: &GitRepoListItem) -> String {
-        const DESC_WC: usize = 60; // Word count limit for description.
         match i.description.is_empty() {
             true => format!("* [{}]({})", i.name, i.url),
             false => match i.description.len() > DESC_WC {
