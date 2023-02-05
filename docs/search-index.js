@@ -1,5 +1,5 @@
 var searchIndex = JSON.parse('{\
-"dashboard":{"doc":"","t":[5],"n":["main"],"q":["dashboard"],"d":[""],"i":[0],"f":[[[]]],"p":[]}\
+"dashboard":{"doc":"Dev","t":[4,13,13,6,13,13,11,11,11,11,11,11,5,11,11,11,11,5,11,12,12],"n":["AppError","InvalidHeader","MissingAttribute","Result","Unknown","UnknownWithMsg","borrow","borrow_mut","fmt","fmt","from","into","main","provide","to_string","try_from","try_into","try_main","type_id","expected","found"],"q":["dashboard","","","","","","","","","","","","","","","","","","","dashboard::AppError",""],"d":["Example","","","","","","","","","","Returns the argument unchanged.","Calls <code>U::from(self)</code>.","","","","","","","","",""],"i":[0,1,1,0,1,1,1,1,1,1,1,1,0,1,1,1,1,0,1,9,9],"f":[0,0,0,0,0,0,[[]],[[]],[[1,2],3],[[1,2],3],[[]],[[]],[[],[[4,[1]]]],[5],[[],6],[[],7],[[],7],[[],[[4,[1]]]],[[],8],0,0],"p":[[4,"AppError"],[3,"Formatter"],[6,"Result"],[6,"Result"],[3,"Demand"],[3,"String"],[4,"Result"],[3,"TypeId"],[13,"InvalidHeader"]]}\
 }');
 if (typeof window !== 'undefined' && window.initSearch) {window.initSearch(searchIndex)};
 if (typeof exports !== 'undefined') {exports.searchIndex = searchIndex};

@@ -1,7 +1,4 @@
-Just the GitHub Actions build status of all the repos under my account, for my
-own use.
-
-It is disappointing that GitHub does not natively provide this.
+GitHub Actions build status of all the repos under my account, for my own use.
 
 <table>
 <tr>
