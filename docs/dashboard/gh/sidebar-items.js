@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":[["FIELDS",""]],"enum":[["__Field",""]],"struct":[["GitRepo",""],["GitRepoListItem",""],["RepositoryTopic",""],["__FieldVisitor",""],["__Visitor",""]],"trait":[["GitCliOps",""]]};
+window.SIDEBAR_ITEMS = {"constant":[["FIELDS",""]],"enum":[["__Field",""]],"struct":[["GitRepo",""],["GitRepoListItem","Custom data structure to parse into markdown list item."],["RepositoryTopic",""],["__FieldVisitor",""],["__Visitor",""]],"trait":[["GitCliOps",""]]};

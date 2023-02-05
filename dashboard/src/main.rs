@@ -27,12 +27,16 @@
 //! * `url` - Repository URL
 //! * `description` - Description of the repository
 
-use std::fs::{File, OpenOptions};
+use std::{
+    fs::{File, OpenOptions},
+    io::Write,
+};
 
 use anyhow::anyhow;
 use app::PATH_JSON_GH_REPO_LIST;
 use db::DB;
 
+use crate::{app::PATH_MD_OUTPUT, gh::GitRepoListItem};
 pub use crate::{
     app::{AppError, Result},
     gh::{GitCliOps, GitRepo, RepositoryTopic},
@@ -55,12 +59,67 @@ pub fn try_main() -> app::Result<(), app::AppError> {
     let mut dashboard =
         app::App { config: config::Config {}, db: DB { data: None, repo_list: None } };
 
-    dashboard.db.fetch_gh_repo_list_json()?;
-
-    let mut file_opts = OpenOptions::new();
-    let file = file_opts.read(true).write(true).create(true).open(&PATH_JSON_GH_REPO_LIST).unwrap();
-    serde_json::to_writer_pretty(file, &dashboard.db.data.unwrap()).unwrap();
-    log::info!("Successfully wrote git repo list to file `{PATH_JSON_GH_REPO_LIST}`");
+    {
+        dashboard.db.fetch_gh_repo_list_json()?;
+    }
+    {
+        let file: File = OpenOptions::new()
+            .read(true)
+            .write(true)
+            .create(true)
+            .open(&PATH_JSON_GH_REPO_LIST)
+            .unwrap();
+        serde_json::to_writer_pretty(file, &dashboard.clone().db.data.unwrap()).unwrap();
+        log::info!("Wrote git repo list to file `{PATH_JSON_GH_REPO_LIST}`");
+    }
+    {
+        let data: Vec<GitRepo> = (&dashboard.clone()).db.data.clone().unwrap();
+        let md_list: Vec<GitRepoListItem> = data
+            .iter()
+            .map(|repo| GitRepoListItem {
+                name: (*repo.name).to_string(),
+                url: (*repo.url).to_string(),
+                description: (*repo.description).to_string(),
+            })
+            .collect();
+        dashboard.db.repo_list = Some(md_list);
+        {
+            let items: Vec<_> = dashboard
+                .db
+                .repo_list
+                .unwrap()
+                .iter()
+                .map(|item| match item.description.is_empty() {
+                    true => format!("* [{}]({})", item.name, item.url),
+                    false => {
+                        let limit = 60;
+                        if item.description.len() > limit {
+                            format!(
+                                "* [{}]({}) — {}...",
+                                item.name,
+                                item.url,
+                                item.description.clone().split_at(limit).0
+                            )
+                        } else {
+                            format!("* [{}]({}) — {}", item.name, item.url, item.description)
+                        }
+                    }
+                })
+                .collect();
+            let mut file: File = OpenOptions::new()
+                .read(true)
+                .write(true)
+                .create(true)
+                .open(&PATH_MD_OUTPUT)
+                .unwrap();
+            // Write to file.
+            for line in items {
+                let line = format!("{}\n", line);
+                file.write_all(line.as_bytes()).unwrap();
+            }
+            log::info!("Wrote repo list items to file `{PATH_MD_OUTPUT}`");
+        }
+    }
 
     Ok(())
 }
@@ -222,6 +281,7 @@ pub mod gh {
         pub url: String,
     }
 
+    /// Custom data structure to parse into markdown list item.
     #[derive(Clone, Debug, Deserialize, Serialize)]
     #[serde(rename_all = "camelCase")] // https://serde.rs/attr-rename.html
     pub struct GitRepoListItem {
