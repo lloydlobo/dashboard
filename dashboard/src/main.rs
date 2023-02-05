@@ -28,6 +28,7 @@
 //! * `description` - Description of the repository
 
 use anyhow::anyhow;
+use app::PATH_JSON_GH_REPO_LIST;
 use db::DB;
 
 pub use crate::{
@@ -48,13 +49,20 @@ pub fn main() -> app::Result<(), app::AppError> {
     Ok(())
 }
 
-//------------------------------------------------------------------------------
-
 pub fn try_main() -> app::Result<(), app::AppError> {
     let mut dashboard =
         app::App { config: config::Config {}, db: DB { data: None, repo_list: None } };
 
     dashboard.db.fetch_gh_repo_list_json()?;
+
+    let file: std::fs::File = std::fs::OpenOptions::new()
+        .read(true)
+        .write(true)
+        .create(true)
+        .open(&PATH_JSON_GH_REPO_LIST)
+        .unwrap();
+    serde_json::to_writer_pretty(file, &dashboard.db.data.unwrap()).unwrap();
+    log::info!("Successfully wrote git repo list to file `{PATH_JSON_GH_REPO_LIST}`");
 
     Ok(())
 }
@@ -62,6 +70,8 @@ pub fn try_main() -> app::Result<(), app::AppError> {
 //------------------------------------------------------------------------------
 
 pub mod app {
+    //! `app` module contains `App` which contains prelude for all modules in this crate.
+
     use serde::{Deserialize, Serialize};
     use thiserror::Error;
 
@@ -166,6 +176,7 @@ pub mod db {
     }
 
     impl GitCliOps for DB {
+        /// Assigns the fetched response to `self.data`.
         fn fetch_gh_repo_list_json(&mut self) -> Result<(), AppError> {
             let sh = Shell::new().unwrap();
             let opts_json_args: String = ARGS_GH_REPO_LIST_JSON.join(",");
