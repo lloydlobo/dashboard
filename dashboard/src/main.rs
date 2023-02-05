@@ -1,6 +1,7 @@
 //! # dashboard
 //!
-//! `dashboard` is list of "GitHub Actions build status" of all the repos under my account, for my own use.
+//! `dashboard` is list of "GitHub Actions build status" of all the repos under my account, for my
+//! own use.
 //!
 //! ## Development
 //!
@@ -25,77 +26,127 @@
 //! * `name` - Repository name
 //! * `url` - Repository URL
 //! * `description` - Description of the repository
-//!
 
 use anyhow::anyhow;
-use gh::Fetch;
+use db::DB;
+use gh::GitCliOps;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 //------------------------------------------------------------------------------
 
-/// Name of `dashboard` `package`in `/dashboard/Cargo.toml`.
-const PKG_NAME: &str = env!("CARGO_PKG_NAME");
-
-/// Path to `gh` cli output for `repo list` command.
-const JSON_GH_REPO_LIST: &str = "gh_repo_list.json";
-
-#[derive(Clone, Debug, Deserialize, Serialize)]
-struct App {}
-
-//------------------------------------------------------------------------------
-
 fn main() -> Result<(), AppError> {
     pretty_env_logger::init();
+
     if let Err(e) = try_main() {
         eprintln!("{}", anyhow!(e));
         std::process::exit(1)
     }
+    Ok(())
+}
+
+//------------------------------------------------------------------------------
+
+fn try_main() -> Result<(), AppError> {
+    let mut app = App { config: Config {}, db: DB { data: None } };
+
+    app.db.fetch_gh_repo_list_json()?;
+    // Current count of github `Source` repositories.
+    dbg!(&app.db.data.unwrap().len());
 
     Ok(())
 }
 
 //------------------------------------------------------------------------------
 
-const ARGS_GH_REPO_LIST_JSON: &[&str] = &[
-    "createdAt",
-    "description",
-    "diskUsage",
-    "id",
-    "name",
-    "pushedAt",
-    "repositoryTopics",
-    "sshUrl",
-    "stargazerCount",
-    "updatedAt",
-    "url",
-];
+#[derive(Clone, Debug, Deserialize, Serialize)]
+struct App {
+    config: Config,
+    db: DB,
+}
 
-fn try_main() -> Result<(), AppError> {
-    let mut app = App {};
-    let gh_args = ARGS_GH_REPO_LIST_JSON
-        .iter()
-        .map(ToString::to_string)
-        .collect();
-    app.fetch_gh_cli(gh_args)?;
-    Ok(())
+//------------------------------------------------------------------------------
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+struct Config {}
+
+//------------------------------------------------------------------------------
+
+mod db {
+    use serde::{Deserialize, Serialize};
+    use xshell::{cmd, Shell};
+
+    use crate::{
+        gh::{self, GitCliOps, GitRepo},
+        AppError, ARGS_GH_REPO_LIST_JSON,
+    };
+
+    #[derive(Clone, Debug, Deserialize, Serialize)]
+    pub struct DB {
+        pub data: Option<Vec<gh::GitRepo>>,
+    }
+
+    impl GitCliOps for DB {
+        fn fetch_gh_repo_list_json(&mut self) -> Result<(), AppError> {
+            let sh = Shell::new().unwrap();
+
+            let opts_json_args: String = ARGS_GH_REPO_LIST_JSON.join(",");
+            let repos_json_str_ser: String =
+                cmd!(sh, "gh repo list --source -L 999 --json {opts_json_args} ").read().unwrap();
+
+            let repos_struct_de: Vec<GitRepo> = serde_json::from_str(&repos_json_str_ser).unwrap();
+            self.data = Some(repos_struct_de);
+
+            Ok(())
+        }
+    }
 }
 
 //------------------------------------------------------------------------------
 
 mod gh {
-    use crate::{App, AppError};
+    use serde::{Deserialize, Serialize};
 
-    pub trait Fetch {
-        fn fetch_gh_cli(&mut self, gh_args: Vec<String>) -> Result<(), AppError>;
+    use crate::AppError;
+
+    #[derive(Clone, Debug, Deserialize, Serialize)]
+    #[serde(rename_all = "camelCase")] // https://serde.rs/attr-rename.html
+    pub struct GitRepo {
+        pub created_at: String,
+        pub description: String,
+        pub disk_usage: u32,
+        pub id: String,
+        pub name: String,
+        //pub  primary_language: Lang,
+        pub pushed_at: String,
+        pub repository_topics: Option<Vec<RepositoryTopic>>,
+        pub ssh_url: String,
+        pub stargazer_count: u32,
+        pub updated_at: String,
+        pub url: String,
     }
 
-    impl Fetch for App {
-        fn fetch_gh_cli(&mut self, gh_args: Vec<String>) -> Result<(), AppError> {
-            dbg!(gh_args);
+    #[derive(Clone, Debug, Deserialize, Serialize)]
+    pub struct RepositoryTopic {
+        pub name: String,
+    }
 
-            Ok(())
-        }
+    pub trait GitCliOps {
+        /// Use GitHub CLI `gh utility` in `xshell` to fetch list of repositories and,
+        /// mutate `self.data` to the json `response` of [`Vec<GitRepo>`].
+        ///
+        /// * `xshell::Shell` - doesn't use the shell directly, but rather re-implements parts of
+        ///   scripting environment in Rust.
+        ///
+        /// # Errors
+        ///
+        /// This function will return an error if:
+        ///
+        /// * [`std::env::current_dir`] - returns an error while creating new [`xshell::Shell`].
+        /// * [`xshell::cmd!`] - on `read` returns a non-zero return code considered to be an error.
+        /// * [`serde_json`] - conversion can fail if the structure of the input does not match the
+        ///   structure expected by `Vec<GitRepo>`.
+        fn fetch_gh_repo_list_json(&mut self) -> Result<(), AppError>;
     }
 }
 
@@ -134,5 +185,28 @@ pub enum AppError {
     #[error("Unknown error: {0}")]
     UnknownWithMsg(String),
 }
+
+//------------------------------------------------------------------------------
+
+#[allow(dead_code)]
+/// Name of `dashboard` `package`in `/dashboard/Cargo.toml`.
+const PKG_NAME: &str = env!("CARGO_PKG_NAME");
+
+/// Path to `gh` cli output for `repo list` command.
+const JSON_GH_REPO_LIST: &str = "gh_repo_list.json";
+
+const ARGS_GH_REPO_LIST_JSON: &[&str] = &[
+    "createdAt",
+    "description",
+    "diskUsage",
+    "id",
+    "name",
+    "pushedAt",
+    "repositoryTopics",
+    "sshUrl",
+    "stargazerCount",
+    "updatedAt",
+    "url",
+];
 
 //------------------------------------------------------------------------------
