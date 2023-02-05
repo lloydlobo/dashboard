@@ -30,12 +30,10 @@
 use anyhow::anyhow;
 use db::DB;
 use gh::GitCliOps;
-use serde::{Deserialize, Serialize};
-use thiserror::Error;
 
 //------------------------------------------------------------------------------
 
-fn main() -> Result<(), AppError> {
+pub fn main() -> app::Result<(), app::AppError> {
     pretty_env_logger::init();
 
     if let Err(e) = try_main() {
@@ -47,38 +45,104 @@ fn main() -> Result<(), AppError> {
 
 //------------------------------------------------------------------------------
 
-fn try_main() -> Result<(), AppError> {
-    let mut app = App { config: Config {}, db: DB { data: None } };
+pub fn try_main() -> app::Result<(), app::AppError> {
+    let mut dashboard = app::App { config: config::Config {}, db: DB { data: None } };
 
-    app.db.fetch_gh_repo_list_json()?;
+    dashboard.db.fetch_gh_repo_list_json()?;
     // Current count of github `Source` repositories.
-    dbg!(&app.db.data.unwrap().len());
+    dbg!(&dashboard.db.data.unwrap().len());
 
     Ok(())
 }
 
 //------------------------------------------------------------------------------
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
-struct App {
-    config: Config,
-    db: DB,
+pub mod app {
+    use serde::{Deserialize, Serialize};
+    use thiserror::Error;
+
+    use crate::{config, db::DB};
+
+    #[derive(Clone, Debug, Deserialize, Serialize)]
+    pub struct App {
+        pub(crate) config: config::Config,
+        pub(crate) db: DB,
+    }
+
+    /// `Result<T, E>`
+    ///
+    /// This is a reasonable return type to use throughout your application but also
+    /// for `fn main`; if you do, failures will be printed along with any
+    /// [context](https://docs.rs/anyhow/1.0.69/anyhow/trait.Context.html) and a backtrace if one was captured.
+    pub type Result<T, E> = anyhow::Result<T, E>;
+
+    /// `AppError`
+    ///
+    /// # Example
+    ///
+    /// ```ignore
+    /// fn simple_err(msg: &str) -> Result<(), anyhow::Error> {
+    ///     return Err(anyhow!("MissingAttribute: {}", msg));
+    /// }
+    /// fn return_err(msg: &str) -> AppError {
+    ///     AppError::UnknownWithMsg(msg.to_string())
+    /// }
+    /// ```
+    #[derive(Error, Debug)]
+    pub enum AppError {
+        #[error("Invalid header (expected {expected:?}, got {found:?})")]
+        InvalidHeader { expected: String, found: String },
+
+        #[error("Missing attribute: {0}")]
+        MissingAttribute(String),
+
+        #[error("Unknown error")]
+        Unknown,
+
+        #[error("Unknown error: {0}")]
+        UnknownWithMsg(String),
+    }
+
+    #[allow(dead_code)]
+    /// Name of `dashboard` `package`in `/dashboard/Cargo.toml`.
+    pub(crate) const PKG_NAME: &str = env!("CARGO_PKG_NAME");
+
+    /// Path to `gh` cli output for `repo list` command.
+    pub(crate) const JSON_GH_REPO_LIST: &str = "gh_repo_list.json";
+
+    pub(crate) const ARGS_GH_REPO_LIST_JSON: &[&str] = &[
+        "createdAt",
+        "description",
+        "diskUsage",
+        "id",
+        "name",
+        "pushedAt",
+        "repositoryTopics",
+        "sshUrl",
+        "stargazerCount",
+        "updatedAt",
+        "url",
+    ];
 }
 
 //------------------------------------------------------------------------------
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
-struct Config {}
+pub mod config {
+    use serde::{Deserialize, Serialize};
+
+    #[derive(Clone, Debug, Deserialize, Serialize)]
+    pub struct Config {}
+}
 
 //------------------------------------------------------------------------------
 
-mod db {
+pub mod db {
     use serde::{Deserialize, Serialize};
     use xshell::{cmd, Shell};
 
     use crate::{
+        app::{AppError, ARGS_GH_REPO_LIST_JSON},
         gh::{self, GitCliOps, GitRepo},
-        AppError, ARGS_GH_REPO_LIST_JSON,
     };
 
     #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -104,10 +168,10 @@ mod db {
 
 //------------------------------------------------------------------------------
 
-mod gh {
+pub mod gh {
     use serde::{Deserialize, Serialize};
 
-    use crate::AppError;
+    use crate::app;
 
     #[derive(Clone, Debug, Deserialize, Serialize)]
     #[serde(rename_all = "camelCase")] // https://serde.rs/attr-rename.html
@@ -146,67 +210,8 @@ mod gh {
         /// * [`xshell::cmd!`] - on `read` returns a non-zero return code considered to be an error.
         /// * [`serde_json`] - conversion can fail if the structure of the input does not match the
         ///   structure expected by `Vec<GitRepo>`.
-        fn fetch_gh_repo_list_json(&mut self) -> Result<(), AppError>;
+        fn fetch_gh_repo_list_json(&mut self) -> Result<(), app::AppError>;
     }
 }
-
-//------------------------------------------------------------------------------
-
-/// `Result<T, E>`
-///
-/// This is a reasonable return type to use throughout your application but also
-/// for `fn main`; if you do, failures will be printed along with any
-/// [context](https://docs.rs/anyhow/1.0.69/anyhow/trait.Context.html) and a backtrace if one was captured.
-pub type Result<T, E> = anyhow::Result<T, E>;
-
-/// `AppError`
-///
-/// # Example
-///
-/// ```ignore
-/// fn simple_err(msg: &str) -> Result<(), anyhow::Error> {
-///     return Err(anyhow!("MissingAttribute: {}", msg));
-/// }
-/// fn return_err(msg: &str) -> AppError {
-///     AppError::UnknownWithMsg(msg.to_string())
-/// }
-/// ```
-#[derive(Error, Debug)]
-pub enum AppError {
-    #[error("Invalid header (expected {expected:?}, got {found:?})")]
-    InvalidHeader { expected: String, found: String },
-
-    #[error("Missing attribute: {0}")]
-    MissingAttribute(String),
-
-    #[error("Unknown error")]
-    Unknown,
-
-    #[error("Unknown error: {0}")]
-    UnknownWithMsg(String),
-}
-
-//------------------------------------------------------------------------------
-
-#[allow(dead_code)]
-/// Name of `dashboard` `package`in `/dashboard/Cargo.toml`.
-const PKG_NAME: &str = env!("CARGO_PKG_NAME");
-
-/// Path to `gh` cli output for `repo list` command.
-const JSON_GH_REPO_LIST: &str = "gh_repo_list.json";
-
-const ARGS_GH_REPO_LIST_JSON: &[&str] = &[
-    "createdAt",
-    "description",
-    "diskUsage",
-    "id",
-    "name",
-    "pushedAt",
-    "repositoryTopics",
-    "sshUrl",
-    "stargazerCount",
-    "updatedAt",
-    "url",
-];
 
 //------------------------------------------------------------------------------
