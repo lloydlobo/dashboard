@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":[["DESC_WC",""]],"fn":[["fmt_markdown_list_item","Create and format a new markdown list item with repo name, url and its description."]]};

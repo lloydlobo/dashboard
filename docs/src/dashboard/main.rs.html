@@ -317,7 +317,6 @@
 <a href="#317" id="317">317</a>
 <a href="#318" id="318">318</a>
 <a href="#319" id="319">319</a>
-<a href="#320" id="320">320</a>
 </pre><pre class="rust"><code><span class="doccomment">//! # dashboard
 //!
 //! `dashboard` is list of &quot;GitHub Actions build status&quot; of all the repos under my account, for my
@@ -404,28 +403,9 @@
             .collect();
         dashboard.db.repo_list = <span class="prelude-val">Some</span>(md_list);
         {
-            <span class="kw">let </span>items: Vec&lt;<span class="kw">_</span>&gt; = dashboard
-                .db
-                .repo_list
-                .unwrap()
-                .iter()
-                .map(|item| <span class="kw">match </span>item.description.is_empty() {
-                    <span class="bool-val">true </span>=&gt; <span class="macro">format!</span>(<span class="string">&quot;* [{}]({})&quot;</span>, item.name, item.url),
-                    <span class="bool-val">false </span>=&gt; {
-                        <span class="kw">let </span>limit = <span class="number">60</span>;
-                        <span class="kw">if </span>item.description.len() &gt; limit {
-                            <span class="macro">format!</span>(
-                                <span class="string">&quot;* [{}]({}) — {}...&quot;</span>,
-                                item.name,
-                                item.url,
-                                item.description.clone().split_at(limit).<span class="number">0
-                            </span>)
-                        } <span class="kw">else </span>{
-                            <span class="macro">format!</span>(<span class="string">&quot;* [{}]({}) — {}&quot;</span>, item.name, item.url, item.description)
-                        }
-                    }
-                })
-                .collect();
+            <span class="kw">let </span>repo_list: Vec&lt;GitRepoListItem&gt; = dashboard.db.repo_list.unwrap();
+            <span class="kw">let </span>items: Vec&lt;String&gt; =
+                repo_list.iter().map(markdown::fmt_markdown_list_item).collect();
             <span class="kw">let </span><span class="kw-2">mut </span>file: File = OpenOptions::new()
                 .read(<span class="bool-val">true</span>)
                 .write(<span class="bool-val">true</span>)
@@ -442,6 +422,24 @@
     }
 
     <span class="prelude-val">Ok</span>(())
+}
+
+<span class="kw">mod </span>markdown {
+    <span class="kw">use </span><span class="kw">crate</span>::gh::GitRepoListItem;
+
+    <span class="doccomment">/// Create and format a new markdown list item with repo name, url and its description.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>fmt_markdown_list_item(i: <span class="kw-2">&amp;</span>GitRepoListItem) -&gt; String {
+        <span class="kw">const </span>DESC_WC: usize = <span class="number">60</span>; <span class="comment">// Word count limit for description.
+        </span><span class="kw">match </span>i.description.is_empty() {
+            <span class="bool-val">true </span>=&gt; <span class="macro">format!</span>(<span class="string">&quot;* [{}]({})&quot;</span>, i.name, i.url),
+            <span class="bool-val">false </span>=&gt; <span class="kw">match </span>i.description.len() &gt; DESC_WC {
+                <span class="bool-val">true </span>=&gt; {
+                    <span class="macro">format!</span>(<span class="string">&quot;* [{}]({}) — {}...&quot;</span>, i.name, i.url, i.description.split_at(DESC_WC).<span class="number">0</span>)
+                }
+                <span class="bool-val">false </span>=&gt; <span class="macro">format!</span>(<span class="string">&quot;* [{}]({}) — {}&quot;</span>, i.name, i.url, i.description),
+            },
+        }
+    }
 }
 
 <span class="comment">//------------------------------------------------------------------------------
