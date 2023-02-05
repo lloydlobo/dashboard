@@ -27,6 +27,8 @@
 //! * `url` - Repository URL
 //! * `description` - Description of the repository
 
+use std::fs::{File, OpenOptions};
+
 use anyhow::anyhow;
 use app::PATH_JSON_GH_REPO_LIST;
 use db::DB;
@@ -55,12 +57,8 @@ pub fn try_main() -> app::Result<(), app::AppError> {
 
     dashboard.db.fetch_gh_repo_list_json()?;
 
-    let file: std::fs::File = std::fs::OpenOptions::new()
-        .read(true)
-        .write(true)
-        .create(true)
-        .open(&PATH_JSON_GH_REPO_LIST)
-        .unwrap();
+    let mut file_opts = OpenOptions::new();
+    let file = file_opts.read(true).write(true).create(true).open(&PATH_JSON_GH_REPO_LIST).unwrap();
     serde_json::to_writer_pretty(file, &dashboard.db.data.unwrap()).unwrap();
     log::info!("Successfully wrote git repo list to file `{PATH_JSON_GH_REPO_LIST}`");
 
