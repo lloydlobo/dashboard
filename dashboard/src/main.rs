@@ -84,28 +84,9 @@ pub fn try_main() -> app::Result<(), app::AppError> {
             .collect();
         dashboard.db.repo_list = Some(md_list);
         {
-            let items: Vec<_> = dashboard
-                .db
-                .repo_list
-                .unwrap()
-                .iter()
-                .map(|item| match item.description.is_empty() {
-                    true => format!("* [{}]({})", item.name, item.url),
-                    false => {
-                        let limit = 60;
-                        if item.description.len() > limit {
-                            format!(
-                                "* [{}]({}) — {}...",
-                                item.name,
-                                item.url,
-                                item.description.clone().split_at(limit).0
-                            )
-                        } else {
-                            format!("* [{}]({}) — {}", item.name, item.url, item.description)
-                        }
-                    }
-                })
-                .collect();
+            let repo_list: Vec<GitRepoListItem> = dashboard.db.repo_list.unwrap();
+            let items: Vec<String> =
+                repo_list.iter().map(markdown::fmt_markdown_list_item).collect();
             let mut file: File = OpenOptions::new()
                 .read(true)
                 .write(true)
@@ -122,6 +103,24 @@ pub fn try_main() -> app::Result<(), app::AppError> {
     }
 
     Ok(())
+}
+
+mod markdown {
+    use crate::gh::GitRepoListItem;
+
+    /// Create and format a new markdown list item with repo name, url and its description.
+    pub(crate) fn fmt_markdown_list_item(i: &GitRepoListItem) -> String {
+        const DESC_WC: usize = 60; // Word count limit for description.
+        match i.description.is_empty() {
+            true => format!("* [{}]({})", i.name, i.url),
+            false => match i.description.len() > DESC_WC {
+                true => {
+                    format!("* [{}]({}) — {}...", i.name, i.url, i.description.split_at(DESC_WC).0)
+                }
+                false => format!("* [{}]({}) — {}", i.name, i.url, i.description),
+            },
+        }
+    }
 }
 
 //------------------------------------------------------------------------------
