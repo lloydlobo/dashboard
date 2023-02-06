@@ -1,2 +1,2 @@
 [workspace]
-members = ["dashboard", "xtask"]
+members = ["dashboard", "parser", "xtask"]

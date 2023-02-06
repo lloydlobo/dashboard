@@ -1,8 +1,16 @@
+# Test
+
+## Repositories
+
+All repos.
+
+<!--START_SECTION:tag_1-->
+
 * [lloydlobo](https://github.com/lloydlobo/lloydlobo) — Lloyd Lobo's GitHub profile.
 * [dashboard](https://github.com/lloydlobo/dashboard) — Mega dashboard for all my projects
 * [homely-recipes](https://github.com/lloydlobo/homely-recipes) — The site that recommends hand-picked home-made recipes prepa...
 * [wavefncollapse](https://github.com/lloydlobo/wavefncollapse) — wavefncollapse
-* [odin-rock-paper-scissors-docs](https://github.com/lloydlobo/odin-rock-paper-scissors-docs) — Documentation for the "Odin Rock Paper Scissors" Game
+* [odin-rock-paper-scissors-docs](https://github.com/lloydlobo/odin-rock-paper-scissors-docs) — Documentation for the Game
 * [styleguide-homely-recipes](https://github.com/lloydlobo/styleguide-homely-recipes) — Style, Brand, and Developer Guide for Homely Recipes
 * [weather-app](https://github.com/lloydlobo/weather-app) — A functional stunning Weather App 🌥️   made using a sim...
 * [rssh](https://github.com/lloydlobo/rssh) — rssh or Rust Shell allows keeping maintainable bash aliases ...
@@ -94,3 +102,8 @@
 * [odin-thors-landing](https://github.com/lloydlobo/odin-thors-landing) — Like Thor's mighty hammer, wield the power of security for y...
 * [keybindings](https://github.com/lloydlobo/keybindings)
 * [articles](https://github.com/lloydlobo/articles)
+<!--END_SECTION:tag_1-->
+
+## LICENSE
+
+<!-- TODO: -->
