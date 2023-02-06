@@ -1,4 +1,4 @@
 var sourcesIndex = JSON.parse('{\
-"dashboard":["",[],["main.rs"]]\
+"dashboard":["",[],["main.rs","markdown.rs"]]\
 }');
 createSourceSidebar();

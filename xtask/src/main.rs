@@ -1,6 +1,5 @@
 //! Code utilized and modified from [matklad/cargo-xtask](https://github.com/matklad/cargo-xtask/blob/master/examples/hello-world/xtask/src/main.rs)
 
-use anyhow::anyhow;
 use std::{
     env, fs,
     io::Write,
@@ -8,6 +7,7 @@ use std::{
     process::{Command, ExitStatus, Stdio},
 };
 
+use anyhow::anyhow;
 use man::prelude::*;
 
 type Result<T, E> = anyhow::Result<T, E>;
@@ -48,11 +48,7 @@ ARGS:
 }
 
 fn project_root() -> PathBuf {
-    Path::new(&env!("CARGO_MANIFEST_DIR"))
-        .ancestors()
-        .nth(1)
-        .unwrap()
-        .to_path_buf()
+    Path::new(&env!("CARGO_MANIFEST_DIR")).ancestors().nth(1).unwrap().to_path_buf()
 }
 
 /// Removes a directory at this path, after removing all its contents. Use carefully!
@@ -70,10 +66,8 @@ fn dist_dir() -> PathBuf {
 
 fn dist_binary() -> Result<(), DynError> {
     let cargo: String = env::var("CARGO").unwrap_or_else(|_| "cargo".to_string());
-    let status: ExitStatus = Command::new(cargo)
-        .current_dir(project_root())
-        .args(["build", "--release"])
-        .status()?;
+    let status: ExitStatus =
+        Command::new(cargo).current_dir(project_root()).args(["build", "--release"]).status()?;
 
     if !status.success() {
         Err("cargo build failed")?
@@ -83,12 +77,7 @@ fn dist_binary() -> Result<(), DynError> {
 
     fs::copy(&dst, dist_dir().join(PKG_NAME))?;
 
-    match Command::new("strip")
-        .arg("--version")
-        .stdout(Stdio::null())
-        .status()
-        .is_ok()
-    {
+    match Command::new("strip").arg("--version").stdout(Stdio::null()).status().is_ok() {
         true => {
             eprintln!("stripping the binary");
             let status: ExitStatus = Command::new("strip").arg(&dst).status()?;
@@ -105,9 +94,7 @@ fn dist_binary() -> Result<(), DynError> {
 }
 
 fn dist_manpage() -> Result<(), DynError> {
-    let page = Manual::new(PKG_NAME)
-        .about("Wave function collapse")
-        .render();
+    let page = Manual::new(PKG_NAME).about("Wave function collapse").render();
     fs::write(dist_dir().join(format!("{PKG_NAME}.man")), page)?;
 
     Ok(())
@@ -145,19 +132,10 @@ fn dist_doc_xtask() -> Result<(), DynError> {
 
     let copy_from: PathBuf = project_root().join("target/doc");
     let copy_to = dir_docs();
-    if Command::new("cp")
-        .arg("--version")
-        .stdout(Stdio::null())
-        .status()
-        .is_ok()
-    {
+    if Command::new("cp").arg("--version").stdout(Stdio::null()).status().is_ok() {
         eprintln!("info: copying `target/doc` directory to `docs/`");
         let exit_status = Command::new("cp")
-            .args([
-                "-r",
-                &copy_from.to_string_lossy(),
-                &copy_to.to_string_lossy(),
-            ])
+            .args(["-r", &copy_from.to_string_lossy(), &copy_to.to_string_lossy()])
             .status()?;
         if !exit_status.success() {
             Err("error: failed to copy to directory with `cp`")?;
