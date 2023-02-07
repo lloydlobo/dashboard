@@ -1,2 +1,13 @@
 [workspace]
-members = ["dashboard", "parser", "xtask"]
+# members = ["dashboard", "parser", "xtask"]
+members = ["xtask/", "crates/*"]
+
+[workspace.package]
+edition = "2021"
+# rust-version = "1.66"
+# license = "MIT OR Apache-2.0"
+
+# If there is a monorepo setting with lib/ in workspace root
+# [workspace.dependencies]
+# local crates
+# parser = { path = "./crates/parser", version = "0.0.0" }

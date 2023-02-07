@@ -56,19 +56,6 @@ pub mod findrepl {
     //! <!--END_SECTION:tag_1-->
     //! ```
     //!
-    //! ```rust
-    //! fn main() {
-    //!     let path = Path::new("example.txt");
-    //!     let text = "* [new_lorem](https://github.com/new_username/new_username) — new_username's GitHub profile.\n\
-    //!                 * [new_foobar](https://github.com/new_username/new_foobar)\n\
-    //!                 * [new_bar](https://github.com/new_username/new_bar) — Lorem ipsum dolor sit amet, qui minim labore\n\
-    //!                   adipisicing minim sint cillum sint consectetur cupidatat.";
-    //!     if let Err(error) = try_lib_main(text, &path) {
-    //!         println!("Error: {}", error);
-    //!     }
-    //! }
-    //! ```
-    //!
     //! The function try_lib_main will then update the file by replacing the content between the
     //! start and end markers <!--START_SECTION:tag_1--> and <!--END_SECTION:tag_1--> with the
     //! string text. #
@@ -111,24 +98,6 @@ pub mod findrepl {
     /// The second argument, `$marker`, specifies whether it's the start or end marker of the
     /// comment section.
     ///
-    /// # Examples
-    ///
-    /// ```
-    /// use comment_block::comment_block;
-    /// let section_name = "tag_1";
-    /// let marker = "START";
-    /// let result = comment_block!(section_name, marker);
-    /// assert_eq!(result, "<!--START_SECTION:tag_1-->");
-    /// ```
-    ///
-    /// ```rust
-    /// use comment_block::comment_block;
-    /// let start_marker = comment_block!("example", "START");
-    /// let end_marker = comment_block!("example", "END");
-    /// assert_eq!(start_marker, "<!--START_SECTION:example-->");
-    /// assert_eq!(end_marker, "<!--END_SECTION:example-->");
-    /// ```
-    ///
     /// # Internal Notes for Developers
     ///
     /// This macro defines the start and end markers of a comment section in a Markdown file where:
@@ -141,6 +110,12 @@ pub mod findrepl {
         ($section_name:expr, $marker:expr) => {
             format!("<!--{}_SECTION:{}-->", $marker, $section_name)
         };
+    }
+
+    pub struct Input<'a> {
+        pub text: &'a str,
+        pub block: CommentBlock,
+        pub path: &'a Path,
     }
 
     // Certainly! You can make the SECTION parameter dynamic by changing the macro definition to
@@ -160,7 +135,7 @@ pub mod findrepl {
     /// `Marker` is an enumeration of marker values, `Start` and `End`.
     /// These markers are used to indicate the start and end of a comment block in some
     /// implementation.
-    #[derive(Debug)]
+    #[derive(Debug, Clone)]
     pub enum Marker {
         End,
         Start,
@@ -179,10 +154,10 @@ pub mod findrepl {
     /// It has two fields: `section_name`, which is a `String` representing the name of the section,
     /// and `marker`, which is a tuple of two Marker values, indicating the start and end
     /// markers of the comment block.
-    #[derive(Debug)]
+    #[derive(Debug, Clone)]
     pub struct CommentBlock {
-        pub name: String,
-        pub marker: (Marker, Marker),
+        section_name: String,
+        marker: (Marker, Marker),
     }
 
     /// `impl CommentBlock` is an implementation block for the CommentBlock struct.
@@ -190,16 +165,19 @@ pub mod findrepl {
     /// It provides a constructor new for creating new CommentBlock values, and two methods:
     /// `start_marker` and `end_marker`, which return the start and end markers as `String` values.
     impl CommentBlock {
-        pub(crate) fn new(section_name: &str) -> Self {
-            Self { name: section_name.to_string(), marker: (Marker::Start, Marker::End) }
+        pub fn new(section_name: &str) -> Self {
+            Self {
+                section_name: section_name.trim().to_string(),
+                marker: (Marker::Start, Marker::End),
+            }
         }
 
         fn start_marker(&self) -> String {
-            format!("<!--START_SECTION:{}-->", self.name)
+            format!("<!--START_SECTION:{}-->", self.section_name)
         }
 
         fn end_marker(&self) -> String {
-            format!("<!--END_SECTION:{}-->", self.name)
+            format!("<!--END_SECTION:{}-->", self.section_name)
         }
     }
 
@@ -224,10 +202,12 @@ pub mod findrepl {
     ///
     /// * File at `path` doesn't exist.
     /// * start or end marker are not found'.
+    /// * `path` being passed to the replace function. - Instead of passing input.path which is a
+    ///   Path object, you should pass &path, which is the path to the tempfile as a string slice.
     pub fn replace(text: &str, block: CommentBlock, path: &Path) -> Result<(), Error> {
         // Find the start and end of sections surrounded with comment block.
-        let re_start = comment_block!(block.name, block.marker.0);
-        let re_end = comment_block!(block.name, block.marker.1);
+        let re_start = comment_block!(block.section_name, block.marker.0);
+        let re_end = comment_block!(block.section_name, block.marker.1);
 
         // First copy the existing file into a buffer.
         let mut f = File::open(path)?;
@@ -245,6 +225,7 @@ pub mod findrepl {
         let mut end = buf_arr[n_end..].to_owned();
         let mut middle = text.lines().collect();
         start.append(&mut middle);
+        end.append(&mut vec!["\n"]);
         start.append(&mut end);
 
         // Join start, updated middle, and end with new line.
@@ -286,24 +267,31 @@ pub mod findrepl {
     }
 }
 
-// let mut capture: Vec<(usize, &str)> = Vec::new();
-// let ln_start = capture[0].0; let ln_end = capture[1].0;
-// Get position of the regex start and end comments.
-// for (i, line) in buf.lines().enumerate() {
-//     if line.contains(&re_start) { capture.push((i, line)); }
-//     if line.contains(&re_end) { capture.push((i, line)); break; }
-// }
-//
-// Mutate and replace the content between them with new content.
-// let mut start = buf_arr[0..=capture[0].0].to_owned();
-// let mut end = buf_arr[capture[1].0..].to_owned();
-// let mid = buf_arr[capture[0].0..capture[1].0].to_owned();
-
+#[cfg(test)]
 mod tests {
+    use std::{
+        fs::File,
+        io::{Read, Write},
+        path::Path,
+    };
+
+    use pretty_assertions::assert_eq;
+    use quickcheck::{quickcheck, Arbitrary, Gen};
+    use tempfile::tempdir;
+
     use super::*;
 
-    const PKG_NAME: &'static str = env!("CARGO_PKG_NAME");
-    const README_PATH: &str = "README.md";
+    const INITIAL_CONTENT: &str = r#"# README Test
+
+This is a dashboard to display all users projects.
+
+<!--START_SECTION:tag_1-->
+<!--END_SECTION:tag_1-->
+
+# LICENSE
+
+Lorem ipsum dolor sit amet, qui minim labore adipisicing minim sint cillum sint consectetur cupidatat."#;
+
     const TO_UPDATE_WITH: &str = r#"* [d](...) - ...
  * [e](...) - ...
  * [a](...) - ...
@@ -311,22 +299,40 @@ mod tests {
  * [a](...) - ...
  * [f](...) - ..."#;
 
-    pub(crate) fn run_main() -> Result<(), Error> {
-        builder().filter_level(Info).filter_level(Debug).init();
-        let start = Instant::now();
-        let section_name = &"tag_1";
-        let comment_block = CommentBlock::new(section_name);
-
-        // match crate_lib::try_lib_main(TO_UPDATE_WITH, Path::new(README_PATH)) {
-        match findrepl::replace(TO_UPDATE_WITH, comment_block, Path::new(README_PATH)) {
-            Ok(_) => info!("Finished successfully in {:#.2?}\n\n", start.elapsed()),
-            Err(err) => {
-                let err = anyhow!("{err}");
-                log::error!("{err}");
-                return Err(err);
-            }
+    #[test]
+    fn should_replace() {
+        let input = Input {
+            text: TO_UPDATE_WITH,
+            block: CommentBlock::new("tag_1"),
+            path: Path::new("README.md"),
         };
 
-        Ok(())
+        // Initialize temp files.
+        let dir = tempdir().unwrap();
+        let path = dir.path().join("README.md");
+
+        // Write INITIAL_CONTENT to tempfile.
+        let mut f = File::create(&path).unwrap();
+        f.write_all(INITIAL_CONTENT.as_bytes()).unwrap();
+
+        {
+            // Check if the file was updated with new text.
+            let mut f = File::open(&path).unwrap();
+            let mut buf = String::new();
+            f.read_to_string(&mut buf).unwrap();
+            let path = path.to_string_lossy();
+            assert_eq!(
+                buf, INITIAL_CONTENT,
+                "Should write `INITIAL_CONTENT` to tempfile at {path}",
+            );
+        }
+        let result = replace(input.text, input.block, &path);
+        assert_eq!(result.is_ok(), true, "Should replace text with `parser::findrepl`");
+
+        // Check if the file was updated with new text.
+        let mut f = File::open(&path).unwrap();
+        let mut buf = String::new();
+        f.read_to_string(&mut buf).unwrap();
+        assert_eq!(buf.contains(&input.text), true);
     }
 }

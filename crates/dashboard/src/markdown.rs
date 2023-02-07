@@ -71,7 +71,7 @@ impl RegexMd {
     }
 }
 
-/// Indicates if visitor is inside markdown start and end section blocks.
+/* /// Indicates if visitor is inside markdown start and end section blocks.
 enum SectionState {
     OutsideSection,
     InSection,
@@ -133,7 +133,7 @@ pub(crate) fn update_markdown_file(
     }
 
     Ok(())
-}
+} */
 
 /// Create and format a new markdown list item with repo name, url and its description.
 pub(crate) fn fmt_markdown_list_item(i: &GitRepoListItem) -> String {
@@ -157,58 +157,61 @@ mod tests {
 
     use super::*;
 
-    #[test]
-    fn test_update_markdown_file() {
-        pretty_env_logger::env_logger::builder().filter_level(log::LevelFilter::Info).build();
-        let file_path = Path::new("test.md");
-        let section_name = "dashboard";
-        let new_content = "This is some new content.";
-        let expected_content = "This is some new content.\n";
+    // #[test]
+    // fn test_update_markdown_file() {
+    //     pretty_env_logger::env_logger::builder().filter_level(log::LevelFilter::Info).build();
+    //     let file_path = Path::new("test.md");
+    //     let section_name = "dashboard";
+    //     let new_content = "This is some new content.";
+    //     let expected_content = "This is some new content.\n";
+    //
+    //     // update_markdown_file(file_path, section_name, new_content).unwrap();
+    //     let file = fs::read_to_string(file_path).unwrap();
+    //     assert_eq!(file, expected_content);
+    //
+    //     fs::remove_file(file_path).unwrap();
+    // }
 
-        update_markdown_file(file_path, section_name, new_content).unwrap();
-        let file = fs::read_to_string(file_path).unwrap();
-        assert_eq!(file, expected_content);
-
-        fs::remove_file(file_path).unwrap();
-    }
-
-    #[test]
-    fn test_update_md_file() {
-        pretty_env_logger::env_logger::builder().filter_level(log::LevelFilter::Info).build();
-        let file_path = Path::new("test.md");
-        let section_name = "dashboard";
-        let new_content = "* [Google](https://www.google.com) - Search engine\n\
-                          * [GitHub](https://github.com) - Web-based hosting service\n\
-                          * [Rust Programming Language](https://www.rust-lang.org) - System programming language";
-        let expected_content = "* [Google](https://www.google.com) - Search engine\n\
-                          * [GitHub](https://github.com) - Web-based hosting service\n\
-                          * [Rust Programming Language](https://www.rust-lang.org) - System programming language\n";
-
-        update_markdown_file(file_path, section_name, new_content).unwrap();
-        let file = fs::read_to_string(file_path).unwrap();
-        assert_eq!(file, expected_content);
-
-        fs::remove_file(file_path).unwrap();
-    }
+    // #[test]
+    // fn test_update_md_file() {
+    //     pretty_env_logger::env_logger::builder().filter_level(log::LevelFilter::Info).build();
+    //     let file_path = Path::new("test.md");
+    //     let section_name = "dashboard";
+    //     let new_content = "* [Google](https://www.google.com) - Search engine\n\
+    //                       * [GitHub](https://github.com) - Web-based hosting service\n\
+    //                       * [Rust Programming Language](https://www.rust-lang.org) - System
+    //                         programming language";
+    //     let expected_content = "* [Google](https://www.google.com) - Search engine\n\
+    //                       * [GitHub](https://github.com) - Web-based hosting service\n\
+    //                       * [Rust Programming Language](https://www.rust-lang.org) - System
+    //                         programming language\n";
+    //
+    //     update_markdown_file(file_path, section_name, new_content).unwrap();
+    //     let file = fs::read_to_string(file_path).unwrap();
+    //     assert_eq!(file, expected_content);
+    //
+    //     fs::remove_file(file_path).unwrap();
+    // }
 }
 
 //------------------------------------------------------------------------------
 
-fn bench() {
-    let file_path = Path::new("test.md");
-    let section_name = "dashboard";
-    let new_content = "* [Google](https://www.google.com) - Search engine\n\
-                      * [GitHub](https://github.com) - Web-based hosting service\n\
-                      * [Rust Programming Language](https://www.rust-lang.org) - System programming language";
-
-    if Path::new(file_path).exists() {
-        fs::remove_file(file_path).unwrap();
-    }
-
-    let start = Instant::now();
-    update_markdown_file(file_path, section_name, new_content).unwrap();
-    let duration = start.elapsed();
-    println!("Duration: {:?}", duration);
-
-    fs::remove_file(file_path).unwrap();
-}
+// fn bench() {
+//     let file_path = Path::new("test.md");
+//     let section_name = "dashboard";
+//     let new_content = "* [Google](https://www.google.com) - Search engine\n\
+//                       * [GitHub](https://github.com) - Web-based hosting service\n\
+//                       * [Rust Programming Language](https://www.rust-lang.org) - System
+//                         programming language";
+//
+//     if Path::new(file_path).exists() {
+//         fs::remove_file(file_path).unwrap();
+//     }
+//
+//     let start = Instant::now();
+//     update_markdown_file(file_path, section_name, new_content).unwrap();
+//     let duration = start.elapsed();
+//     println!("Duration: {:?}", duration);
+//
+//     fs::remove_file(file_path).unwrap();
+// }
