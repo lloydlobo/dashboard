@@ -116,8 +116,8 @@ fn try_main() -> app::Result<(), AppError> {
         .collect::<Vec<_>>()
         .join("\n");
     let block = CommentBlock::new("tag_1".to_string());
-    let path = &Path::new(PATH_MD_OUTPUT);
-    findrepl::replace(&text, block, path).map_err(|e| AppError::RegexError(e.into()))
+    let path = Path::new(PATH_MD_OUTPUT);
+    findrepl::replace(&text, block, &path).map_err(AppError::Parsing)
 }
 
 //------------------------------------------------------------------------------
