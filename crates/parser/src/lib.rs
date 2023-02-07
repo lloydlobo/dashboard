@@ -14,6 +14,41 @@ mod macros;
 
 pub use crate::{error::*, findrepl::*};
 
+mod printer {
+    use std::io::Write;
+
+    use atty::Stream;
+    use termcolor::{BufferWriter, Color, ColorChoice, ColorSpec, WriteColor};
+
+    use crate::error::ParserError;
+
+    pub(crate) fn new() -> Result<(), ParserError> {
+        let mut bufwtr = BufferWriter::stderr(ColorChoice::Always);
+        let mut buffer = bufwtr.buffer();
+        buffer.set_color(ColorSpec::new().set_fg(Some(Color::Green)))?;
+        writeln!(&mut buffer, "green text!")?;
+        bufwtr.print(&buffer)?;
+
+        Ok(())
+    }
+
+    pub(crate) fn is_stdout_tty(stream: Stream) -> Result<(), ParserError> {
+        let mut bufwtr = BufferWriter::stderr(ColorChoice::Always);
+        let mut buffer = bufwtr.buffer();
+        if atty::is(stream) {
+            buffer.set_color(ColorSpec::new().set_fg(Some(Color::Green)))?;
+            writeln!(&mut buffer, "I'm a terminal")?;
+            bufwtr.print(&buffer)?;
+        } else {
+            buffer.set_color(ColorSpec::new().set_fg(Some(Color::Red)))?;
+            writeln!(&mut buffer, "I'm not a terminal")?;
+            bufwtr.print(&buffer)?;
+        }
+
+        Ok(())
+    }
+}
+
 pub mod findrepl {
     //! # findrepl
     //!
@@ -241,27 +276,11 @@ pub mod findrepl {
 
         use pretty_assertions::assert_eq;
         use quickcheck::{quickcheck, Arbitrary, Gen};
+        use quickcheck_macros::*;
+        use rand::Rng;
         use tempfile::tempdir;
 
         use super::*;
-
-        const INITIAL_CONTENT: &str = r#"# README Test
-
-This is a dashboard to display all users projects.
-
-<!--START_SECTION:tag_1-->
-<!--END_SECTION:tag_1-->
-
-# LICENSE
-
-Lorem ipsum dolor sit amet, qui minim labore adipisicing minim sint cillum sint consectetur cupidatat."#;
-
-        const TO_UPDATE_WITH: &str = r#"* [d](...) - ...
- * [e](...) - ...
- * [a](...) - ...
- * [b](...) - ...
- * [a](...) - ...
- * [f](...) - ..."#;
 
         #[derive(Debug, PartialEq, Clone, Default)]
         pub struct Input {
@@ -269,12 +288,6 @@ Lorem ipsum dolor sit amet, qui minim labore adipisicing minim sint cillum sint 
             pub block: CommentBlock,
         }
         impl Arbitrary for Input {
-            /// Return an arbitrary value.
-            ///
-            /// Gen represents a PRNG. It is the source of randomness from which QuickCheck will
-            /// generate values. An instance of `Gen` is passed to every invocation of
-            /// `Arbitrary::arbitrary`, which permits callers to use lower level RNG routines to
-            /// generate values.
             fn arbitrary(g: &mut Gen) -> Self {
                 Input {
                     text: Arbitrary::arbitrary(g),
@@ -294,6 +307,46 @@ Lorem ipsum dolor sit amet, qui minim labore adipisicing minim sint cillum sint 
                 "Should write `INITIAL_CONTENT` to tempfile at {path}",
             ))
         }
+
+        // Struct representing a block of text
+        #[derive(Clone, Debug, Eq, PartialEq)]
+        struct Text {
+            content: Box<String>,
+        }
+
+        // Implement the `Arbitrary` trait for the `Text` struct String type implements Arbitrary
+        // and can be used to generate random strings for the content field of Text.
+        impl Arbitrary for Text {
+            /// Generate a random string with length between 0 and 100
+            fn arbitrary(g: &mut Gen) -> Self {
+                let mut rng = rand::thread_rng(); // Create a random number generator
+                let len: usize = Gen::new(rng.gen_range(30..100)).size(); // Generate a random length for the content
+                let lines: Vec<_> = (0..len).map(|_| String::arbitrary(g)).collect(); // Generate `len` random lines of text
+                let content: Box<String> = Box::new(lines.join("\n")); // Join the lines into a single multi-line string
+
+                Text { content }
+            }
+        }
+
+        //--------------------------------------------------------------------------------
+
+        const INITIAL_CONTENT: &str = r#"# README Test
+
+This is a dashboard to display all users projects.
+
+<!--START_SECTION:tag_1-->
+<!--END_SECTION:tag_1-->
+
+# LICENSE
+
+Lorem ipsum dolor sit amet, qui minim labore adipisicing minim sint cillum sint consectetur cupidatat."#;
+
+        const TO_UPDATE_WITH: &str = r#"* [d](...) - ...
+ * [e](...) - ...
+ * [a](...) - ...
+ * [b](...) - ...
+ * [a](...) - ...
+ * [f](...) - ..."#;
 
         //--------------------------------------------------------------------------------
 
@@ -322,6 +375,28 @@ Lorem ipsum dolor sit amet, qui minim labore adipisicing minim sint cillum sint 
         }
 
         #[test]
+        fn quickcheck_get_section_positions() {
+            fn prop(text: Text) -> bool {
+                let block = CommentBlock::new("tag_1".to_string());
+                let quick_fuzz = text.content;
+                let buf =
+                    format!("<!--START_SECTION:tag_1-->\n{}\n<!--END_SECTION:tag_1-->", quick_fuzz);
+
+                let re_start = comment_block!(block.section_name, block.marker.0);
+                let re_end = comment_block!(block.section_name, block.marker.1);
+
+                let (start, end) = get_block_positions(&buf, &re_start, &re_end).expect(
+                    "Should returns the line positions of start and end markers for the given \
+                     buffer.",
+                );
+                // assert_eq!(Box::new(buf), quick_fuzz);
+                start < end
+            }
+
+            quickcheck(prop as fn(Text) -> bool);
+        }
+
+        #[test]
         fn should_get_section_positions() {
             let block = CommentBlock::new("tag_1".to_string());
             let buf: &str = r#"<!--START_SECTION:tag_1-->
@@ -342,67 +417,5 @@ Lorem ipsum dolor sit amet, qui minim labore adipisicing minim sint cillum sint 
             assert!(start < end);
             assert_eq!((start, end), (0, 5));
         }
-
-        #[test]
-        fn should_quickcheck_get_section_positions() {
-            let block = CommentBlock::new("tag_1".to_string());
-            // let quick_fuzz = "TODO";
-            let quick_fuzz = quickcheck::random_string(100);
-            let buf =
-                format!("<!--START_SECTION:tag_1-->\n{}\n<!--END_SECTION:tag_1-->", quick_fuzz);
-
-            let re_start = comment_block!(block.section_name, block.marker.0);
-            let re_end = comment_block!(block.section_name, block.marker.1);
-            assert_eq!(re_start, "<!--START_SECTION:tag_1-->");
-            assert_eq!(re_end, "<!--END_SECTION:tag_1-->");
-
-            let (start, end) = get_block_positions(&buf, &re_start, &re_end).expect(
-                "Should returns the line positions of start and end markers for the given buffer.",
-            );
-            assert!(start < end);
-            assert_eq!((start, end), (0, 5));
-        }
-    }
-}
-
-mod printer {
-    use std::io::Write;
-
-    use atty::Stream;
-    use termcolor::{BufferWriter, Color, ColorChoice, ColorSpec, WriteColor};
-
-    use crate::error::ParserError;
-    // pub type Result<T> = std::result::Result<T, ParserError>;
-    // use crate::Result;
-
-    pub fn new() -> Result<(), ParserError> {
-        let mut bufwtr = BufferWriter::stderr(ColorChoice::Always);
-        let mut buffer = bufwtr.buffer();
-
-        buffer.set_color(ColorSpec::new().set_fg(Some(Color::Green)))?;
-        writeln!(&mut buffer, "green text!")?;
-        bufwtr.print(&buffer)?;
-
-        Ok(())
-    }
-
-    pub fn is_stdout_tty(stream: Stream) -> Result<(), ParserError> {
-        let mut bufwtr = BufferWriter::stderr(ColorChoice::Always);
-        let mut buffer = bufwtr.buffer();
-
-        match atty::is(stream) {
-            true => {
-                buffer.set_color(ColorSpec::new().set_fg(Some(Color::Green)))?;
-                writeln!(&mut buffer, "I'm a terminal")?;
-                bufwtr.print(&buffer)?;
-            }
-            false => {
-                buffer.set_color(ColorSpec::new().set_fg(Some(Color::Red)))?;
-                writeln!(&mut buffer, "I'm not a terminal")?;
-                bufwtr.print(&buffer)?;
-            }
-        }
-
-        Ok(())
     }
 }
