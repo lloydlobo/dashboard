@@ -23,7 +23,7 @@ mod printer {
     use crate::error::ParserError;
 
     pub(crate) fn new() -> Result<(), ParserError> {
-        let mut bufwtr = BufferWriter::stderr(ColorChoice::Always);
+        let bufwtr = BufferWriter::stderr(ColorChoice::Always);
         let mut buffer = bufwtr.buffer();
         buffer.set_color(ColorSpec::new().set_fg(Some(Color::Green)))?;
         writeln!(&mut buffer, "green text!")?;
@@ -33,7 +33,7 @@ mod printer {
     }
 
     pub(crate) fn is_stdout_tty(stream: Stream) -> Result<(), ParserError> {
-        let mut bufwtr = BufferWriter::stderr(ColorChoice::Always);
+        let bufwtr = BufferWriter::stderr(ColorChoice::Always);
         let mut buffer = bufwtr.buffer();
         if atty::is(stream) {
             buffer.set_color(ColorSpec::new().set_fg(Some(Color::Green)))?;
@@ -105,10 +105,10 @@ pub mod findrepl {
         path::Path,
     };
 
-    use anyhow::anyhow;
+    
     use regex::Regex;
 
-    use crate::{comment_block, error::ParserError, printer};
+    use crate::{comment_block, error::ParserError};
 
     /// `Marker` is an enumeration of marker values, `Start` and `End`.
     /// These markers are used to indicate the start and end of a [`CommentBlock`] comment block in
@@ -246,8 +246,8 @@ pub mod findrepl {
         re_start: &str,
         re_end: &str,
     ) -> super::Result<(usize, usize)> {
-        let start = Regex::new(&format!(r"{}", re_start)).map_err(ParserError::RegexError)?;
-        let end = Regex::new(&format!(r"{}", re_end)).map_err(ParserError::RegexError)?;
+        let start = Regex::new(re_start).map_err(ParserError::RegexError)?;
+        let end = Regex::new(re_end).map_err(ParserError::RegexError)?;
 
         let start = start
             .find(buf)
@@ -276,7 +276,7 @@ pub mod findrepl {
 
         use pretty_assertions::assert_eq;
         use quickcheck::{quickcheck, Arbitrary, Gen};
-        use quickcheck_macros::*;
+        
         use rand::Rng;
         use tempfile::tempdir;
 
@@ -380,7 +380,7 @@ Lorem ipsum dolor sit amet, qui minim labore adipisicing minim sint cillum sint 
                 let block = CommentBlock::new("tag_1".to_string());
                 let quick_fuzz = text.content;
                 let buf =
-                    format!("<!--START_SECTION:tag_1-->\n{}\n<!--END_SECTION:tag_1-->", quick_fuzz);
+                    format!("<!--START_SECTION:tag_1-->\n{quick_fuzz}\n<!--END_SECTION:tag_1-->");
 
                 let re_start = comment_block!(block.section_name, block.marker.0);
                 let re_end = comment_block!(block.section_name, block.marker.1);

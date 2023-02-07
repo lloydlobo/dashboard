@@ -1,17 +1,13 @@
 use std::{
-    fs,
-    fs::{rename, File, OpenOptions},
-    io::{BufRead, BufReader, Write},
-    path::Path,
-    time::Instant,
+    io::{BufRead},
 };
 
-use anyhow::anyhow;
+
 // use comrak::{markdown_to_html, ComrakOptions};
 use lazy_static::lazy_static;
 
 // use regex::Regex;
-use crate::{gh::GitRepoListItem, AppError, Result};
+use crate::{gh::GitRepoListItem};
 
 #[macro_export]
 macro_rules! comment_block {
@@ -153,9 +149,9 @@ pub(crate) fn fmt_markdown_list_item(i: &GitRepoListItem) -> String {
 #[cfg(test)]
 mod tests {
 
-    use pretty_assertions::assert_eq;
+    
 
-    use super::*;
+    
 
     // #[test]
     // fn test_update_markdown_file() {

@@ -102,10 +102,10 @@ pub enum ErrorColor {
     Cyan,
 }
 
-/// Converts a ParserError into a RegexError.
-impl Into<RegexError> for ParserError {
-    fn into(self) -> RegexError {
-        match self {
+/// Converts a ParserError from a RegexError.
+impl From<ParserError> for RegexError {
+    fn from(val: ParserError) -> Self {
+        match val {
             ParserError::RegexError(error) => error,
             _ => RegexError::Syntax(String::from("ParserError")),
         }
@@ -160,10 +160,10 @@ mod tests {
     fn should_log_logicbug() {
         fn parse_input() -> Result<()> {
             // ...some parsing code
-            return Err(ParserError::LogicBug("error in logic".to_owned()));
+            Err(ParserError::LogicBug("error in logic".to_owned()))
         }
         if let Err(e) = parse_input() {
-            let err = format!("Parsing failed: {:?}", e);
+            let err = format!("Parsing failed: {e:?}");
             assert_eq!(err, r#"Parsing failed: LogicBug("error in logic")"#);
         }
     }
@@ -172,10 +172,10 @@ mod tests {
     fn should_log_printererror() {
         fn parse_input() -> Result<()> {
             // ...some parsing code
-            return Err(ParserError::PrinterError(PrinterError::InvalidColor(ErrorColor::Red)));
+            Err(ParserError::PrinterError(PrinterError::InvalidColor(ErrorColor::Red)))
         }
         if let Err(e) = parse_input() {
-            let err = format!("Parsing failed: {:?}", e);
+            let err = format!("Parsing failed: {e:?}");
             assert_eq!(err, r#"Parsing failed: PrinterError(InvalidColor(Red))"#);
         }
     }

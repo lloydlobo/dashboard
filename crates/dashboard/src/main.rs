@@ -89,13 +89,13 @@ pub fn try_main() -> app::Result<(), app::AppError> {
             .read(true)
             .write(true)
             .create(true)
-            .open(&PATH_JSON_GH_REPO_LIST)
+            .open(PATH_JSON_GH_REPO_LIST)
             .unwrap();
         serde_json::to_writer_pretty(file, &dashboard.clone().db.data.unwrap()).unwrap();
         log::info!("Wrote git repo list to file `{PATH_JSON_GH_REPO_LIST}`");
     }
     {
-        let data: Vec<GitRepo> = (&dashboard.clone()).db.data.clone().unwrap();
+        let data: Vec<GitRepo> = dashboard.clone().db.data.unwrap();
         let md_list: Vec<GitRepoListItem> = data
             .iter()
             .map(|repo| GitRepoListItem {
@@ -113,17 +113,17 @@ pub fn try_main() -> app::Result<(), app::AppError> {
                 .read(true)
                 .write(true)
                 .create(true)
-                .open(&PATH_MD_OUTPUT)
+                .open(PATH_MD_OUTPUT)
                 .unwrap();
             // Write to file.
             for line in items {
-                let line = format!("{}\n", line);
+                let line = format!("{line}\n");
                 file.write_all(line.as_bytes()).unwrap();
             }
             log::info!("Wrote repo list items to file `{PATH_MD_OUTPUT}`");
         }
         {
-            let file_path = Path::new("test.md");
+            let _file_path = Path::new("test.md");
             let section_tag = "dashboard";
             let content = r#"
 <!--START_SECTION:dashboard-->
@@ -238,10 +238,7 @@ pub mod config {
 //------------------------------------------------------------------------------
 
 pub mod db {
-    use std::{
-        fs::{File, OpenOptions},
-        path::Path,
-    };
+    
 
     use anyhow::{anyhow, Context};
     use serde::{Deserialize, Serialize};
