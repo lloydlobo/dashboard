@@ -35,8 +35,6 @@
 //! * `url` - Repository URL
 //! * `description` - Description of the repository
 
-mod markdown;
-
 use std::{
     fs::{File, OpenOptions},
     path::Path,
