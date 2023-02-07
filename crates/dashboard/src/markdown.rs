@@ -1,13 +1,10 @@
-use std::{
-    io::{BufRead},
-};
-
+use std::io::BufRead;
 
 // use comrak::{markdown_to_html, ComrakOptions};
 use lazy_static::lazy_static;
 
 // use regex::Regex;
-use crate::{gh::GitRepoListItem};
+use crate::gh::GitRepoListItem;
 
 #[macro_export]
 macro_rules! comment_block {
@@ -148,10 +145,6 @@ pub(crate) fn fmt_markdown_list_item(i: &GitRepoListItem) -> String {
 
 #[cfg(test)]
 mod tests {
-
-    
-
-    
 
     // #[test]
     // fn test_update_markdown_file() {

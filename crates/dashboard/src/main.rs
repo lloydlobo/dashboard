@@ -42,6 +42,7 @@ use std::{fs::OpenOptions, path::Path, sync::Arc};
 use anyhow::anyhow;
 use app::PATH_JSON_GH_REPO_LIST;
 use db::DB;
+use lazy_static::lazy_static;
 use parser::findrepl::{self, CommentBlock};
 
 use crate::{app::PATH_MD_OUTPUT, gh::GitRepoListItem};
@@ -50,9 +51,13 @@ pub use crate::{
     gh::{GitCliOps, GitRepo, RepositoryTopic},
 };
 
+lazy_static! {
+    // static ref ERR: AppError = AppError::LogicBug(anyhow!("Failed to find data").to_string());
+}
+
 //------------------------------------------------------------------------------
 
-pub fn main() -> app::Result<(), app::AppError> {
+pub fn main() -> app::Result<(), AppError> {
     pretty_env_logger::env_logger::builder()
         .filter_level(log::LevelFilter::Info)
         .filter_level(log::LevelFilter::Debug)
@@ -64,28 +69,34 @@ pub fn main() -> app::Result<(), app::AppError> {
     Ok(())
 }
 
-fn try_main() -> app::Result<(), app::AppError> {
+fn try_main() -> app::Result<(), AppError> {
     let mut dashboard =
         app::App { config: config::Config {}, db: DB { data: None, repo_list: None } };
 
-    dashboard.db.fetch_gh_repo_list_json().map_err(|e| app::AppError::AnyhowError(e.into()))?;
+    dashboard
+        .db
+        .fetch_repos_write_data()
+        .map_err(|e| AppError::XshellError(anyhow!(e).to_string()))?;
 
     let file = OpenOptions::new()
         .read(true)
         .write(true)
         .create(true)
         .open(PATH_JSON_GH_REPO_LIST)
-        .map_err(|e| app::AppError::Io(Arc::new(e)))?;
+        .map_err(|e| AppError::Io(Arc::new(e)))?;
 
-    serde_json::to_writer_pretty(file, &dashboard.db.data.as_ref().unwrap())
-        .map_err(|e| app::AppError::Io(Arc::new(e.into())))?;
-
+    let data = dashboard
+        .db
+        .data
+        .as_ref()
+        .ok_or_else(|| AppError::UnwrapError("No data found".to_string()))?;
+    serde_json::to_writer_pretty(file, data).map_err(AppError::SerdeError)?;
     log::info!("Wrote git repo list to file {}", PATH_JSON_GH_REPO_LIST);
 
     let list = dashboard
         .db
         .data
-        .unwrap()
+        .ok_or_else(|| AppError::LogicBug(anyhow!("Failed to find data").to_string()))?
         .iter()
         .map(|repo| GitRepoListItem {
             name: repo.name.to_string(),
@@ -99,57 +110,17 @@ fn try_main() -> app::Result<(), app::AppError> {
     let text: String = dashboard
         .db
         .repo_list
-        .unwrap()
+        .ok_or_else(|| AppError::LogicBug(anyhow!("Failed to find repo list").to_string()))?
         .iter()
         .map(markdown::fmt_markdown_list_item)
         .collect::<Vec<_>>()
         .join("\n");
 
     findrepl::replace(&text, CommentBlock::new("tag_1".to_string()), Path::new(PATH_MD_OUTPUT))
-        .map_err(|e| app::AppError::RegexError(e.into()))?;
+        .map_err(|e| AppError::RegexError(e.into()))?;
 
     Ok(())
 }
-
-/* fn try_main() -> app::Result<(), app::AppError> {
-    let mut dashboard =
-        app::App { config: config::Config {}, db: DB { data: None, repo_list: None } };
-    if let Err(e) = dashboard.db.fetch_gh_repo_list_json() {
-        return Err(app::AppError::AnyhowError(e.into()));
-    }
-    let file = OpenOptions::new()
-        .read(true)
-        .write(true)
-        .create(true)
-        .open(PATH_JSON_GH_REPO_LIST)
-        .map_err(|e| app::AppError::Io(Arc::new(e)))?;
-    serde_json::to_writer_pretty(file, &dashboard.db.data.as_ref().unwrap())
-        .map_err(|e| app::AppError::Io(Arc::new(e.into())))?;
-    log::info!("Wrote git repo list to file {}", PATH_JSON_GH_REPO_LIST);
-    let list = dashboard
-        .db
-        .data
-        .unwrap()
-        .iter()
-        .map(|repo| GitRepoListItem {
-            name: repo.name.to_string(),
-            url: repo.url.to_string(),
-            description: repo.description.to_string(),
-        })
-        .collect();
-    dashboard.db.repo_list = Some(list);
-    let text: String = dashboard
-        .db
-        .repo_list
-        .unwrap()
-        .iter()
-        .map(markdown::fmt_markdown_list_item)
-        .collect::<Vec<_>>()
-        .join("\n");
-    findrepl::replace(&text, CommentBlock::new("tag_1".to_string()), Path::new(PATH_MD_OUTPUT))
-        .map_err(|e| app::AppError::RegexError(e.into()))?;
-    Ok(())
-} */
 
 //------------------------------------------------------------------------------
 
@@ -177,6 +148,16 @@ pub mod app {
     pub type Result<T, E> = anyhow::Result<T, E>;
 
     /// `AppError`
+    //
+    // The error trait from the serde_json crate would suffice. When you serialize or deserialize
+    // data using the serde_json library, the errors that may occur are related to JSON format
+    // specifically. These errors are captured by the serde_json::Error type.
+    // In contrast, the serde crate provides a more generic mechanism for serialization and
+    // deserialization of data, and its error type is serde::ser::Error. If you are only dealing
+    // with JSON data, it is best to use the serde_json crate and handle serde_json::Error errors.
+    //, if you're using the toml crate, you could wrap a toml::de::Error in your custom error enum
+    //, and return that in the case of a serialization or deserialization error. If using the ron
+    //, crate, you would wrap ron::de::Error
     #[derive(Debug, thiserror::Error)]
     pub enum AppError {
         /// An error occurred while performing an I/O operation
@@ -188,9 +169,6 @@ pub mod app {
         /// An error occurred while performing an I/O operation with the xshell terminal.
         #[error("Xshell I/O error: {0}")]
         XshellIo(#[from] Arc<xshell::Error>),
-        /// An error occurred while fetching the GitHub CLI response.
-        #[error("GitHub CLI error: {0}")]
-        Reqwest(#[from] reqwest::Error),
         /// An error occurred while processing the GitHub Actions workflow or CI cron job.
         #[error("GitHub Actions/CI error: {0}")]
         GithubActionsCi(String),
@@ -198,8 +176,14 @@ pub mod app {
         #[error("Error in logic: {0}")]
         LogicBug(String),
         /// An error occurred using the anyhow library
-        #[error("Anyhow error: {0}")]
-        AnyhowError(#[from] anyhow::Error),
+        // #[error("Anyhow error: {0}")]
+        // AnyhowError(#[from] anyhow::Error),
+        /// Catch the panic and return a value of
+        #[error("Unwrap on a None value error: {0}")]
+        UnwrapError(String),
+        /// An error occurred while serializing or deserializing with serde
+        #[error("Serde error: {0}")]
+        SerdeError(#[from] serde_json::Error),
         /// An error occurred while parsing input
         #[error("Parsing error: {0}")]
         Parsing(#[from] parser::ParserError),
@@ -209,9 +193,12 @@ pub mod app {
         /// An error occurred while interacting with the `xshell` terminal
         #[error("Xshell error")]
         XshellError(String),
-        /// An error occurred with Github Actions or CI workflows
-        #[error("CI/CD error")]
-        CiCdError(String),
+        // /// An error occurred while fetching the GitHub CLI response.
+        // #[error("GitHub CLI error: {0}")]
+        // Reqwest(#[from] reqwest::Error),
+        // /// An error occurred with Github Actions or CI workflows
+        // #[error("CI/CD error")]
+        // CiCdError(String),
     }
 
     #[allow(dead_code)]
@@ -272,7 +259,7 @@ pub mod db {
 
     impl GitCliOps for DB {
         /// Assigns the fetched response to `self.data`.
-        fn fetch_gh_repo_list_json(&mut self) -> Result<(), AppError> {
+        fn fetch_repos_write_data(&mut self) -> Result<(), AppError> {
             let sh = Shell::new().unwrap();
             let opts_json_args: String = ARGS_GH_REPO_LIST_JSON.join(",");
 
@@ -352,7 +339,7 @@ pub mod gh {
         /// * [`xshell::cmd!`] - on `read` returns a non-zero return code considered to be an error.
         /// * [`serde_json`] - conversion can fail if the structure of the input does not match the
         ///   structure expected by `Vec<GitRepo>`.
-        fn fetch_gh_repo_list_json(&mut self) -> Result<(), app::AppError>;
+        fn fetch_repos_write_data(&mut self) -> Result<(), app::AppError>;
     }
 }
 
