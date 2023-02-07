@@ -41,7 +41,7 @@
 // #[cfg(doctest)]
 // doctest!("../README.md");
 
-use std::{convert::Into, io, sync::Arc, write};
+use std::{any::Any, convert::Into, io, sync::Arc, write};
 
 use regex::Error as RegexError;
 
@@ -71,9 +71,39 @@ pub enum ParserError {
     /// An error occurred using the anyhow library
     #[error("Anyhow error")]
     AnyhowError(#[from] anyhow::Error),
+    /// An error occurred using the crossbeam library
+    #[error("Crossbeam scope return result error: {0}")]
+    ChannelError(String),
 }
 
+impl ParserError {
+    /// Returns `true` if the parser error is [`ChannelError`].
+    ///
+    /// [`ChannelError`]: ParserError::ChannelError
+    #[must_use]
+    pub fn is_channel_error(&self) -> bool {
+        matches!(self, Self::ChannelError(..))
+    }
+}
+// impl FromResidual<result::Result<Infallible, Box<dyn Any + Send>>> for ParserError {
+//     fn from_residual(residual: result::Result<Infallible, Box<dyn Any + Send>>) -> Self {
+//         todo!()
+//     }
+// }
+
 /// `PrinterError` enum represents the different errors that can occur while printing some output.
+//
+// It seems that in the original code, the variant ParserError::Io is constructed with an
+// Arc<std::io::Error>, which is an atomic reference counted smart pointer to an
+// std::io::Error. Whether or not to use an Arc here depends on the use case.
+// If the ParserError type is shared across multiple threads and ParserError::Io is going to be
+// passed from one thread to another, then it is necessary to use an Arc to ensure that the
+// error is thread-safe.
+// However, if ParserError::Io is only used within a single thread, it may be more efficient to
+// simply use an std::io::Error without an Arc.
+// Additionally, it is worth considering whether the Arc is actually necessary. If the
+// std::io::Error type is going to be immediately processed and the error message is never going
+// to be accessed again, then using an Arc would be unnecessary overhead.
 #[derive(Debug, thiserror::Error)]
 pub enum PrinterError {
     /// An error occurred while using the termcolor library

@@ -115,7 +115,8 @@ fn try_main() -> app::Result<(), AppError> {
         .join("\n");
     let block = CommentBlock::new("tag_1".to_string());
     let path = Path::new(PATH_MD_OUTPUT);
-    findrepl::replace(&text, block, path).map_err(AppError::Parsing)
+    // findrepl::replace(&text, block, path).map_err(AppError::Parsing)
+    findrepl::replace_par(&text, block, path).map_err(AppError::Parsing)
 }
 
 //------------------------------------------------------------------------------

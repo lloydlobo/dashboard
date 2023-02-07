@@ -107,6 +107,8 @@ pub mod findrepl {
         sync::Arc,
     };
 
+    use anyhow::anyhow;
+    use rayon::prelude::*;
     use regex::{Error::Syntax, Regex};
 
     use crate::{comment_block, error::ParserError};
@@ -179,8 +181,6 @@ pub mod findrepl {
     // PERF: Create regex to find all `section_names` from copied `README.md`.
     pub fn replace(text: &str, block: CommentBlock, path: &Path) -> super::Result<()> {
         // Find the start and end of sections surrounded with comment block.
-        // let re_start = comment_block!(block.section_name, block.marker.0);
-        // let re_end = comment_block!(block.section_name, block.marker.1);
         let (re_start, re_end) = rayon::join(
             || comment_block!(block.section_name, block.marker.0),
             || comment_block!(block.section_name, block.marker.1),
@@ -220,6 +220,58 @@ pub mod findrepl {
             .open(path)
             .map_err(|e| ParserError::Io(e.into()))?
             .write_all(updated_content.as_bytes())
+            .map_err(|e| ParserError::Io(e.into()))?;
+
+        Ok(())
+    }
+
+    /// This version uses `rayon::par_iter` to bring the necessary traits into scope.
+    /// Then, it chains the start, middle and end parts of the original string together using the
+    /// `.par_iter()` method, which enables parallel processing.
+    /// Finally, it collects the results into a vector of strings and joins them as a single string.
+    pub fn replace_par(text: &str, block: CommentBlock, path: &Path) -> super::Result<()> {
+        // Find the start and end of sections surrounded with comment block.
+        let (re_start, re_end) = rayon::join(
+            || comment_block!(block.section_name, block.marker.0),
+            || comment_block!(block.section_name, block.marker.1),
+        );
+
+        // First copy the existing file into a buffer.
+        let mut buf = String::new();
+        fs::File::open(path)
+            .map_err(|e| ParserError::Io(Arc::new(e)))?
+            .read_to_string(&mut buf)
+            .map_err(|e| ParserError::Io(Arc::new(e)))?;
+        // Returns the start and end position of regex section.
+        let (n_start, n_end) = get_block_positions(&buf, &re_start, &re_end)
+            .map_err(|e| ParserError::RegexError(e.into()))?;
+
+        // Split content into lines.
+        let buf_arr: Vec<_> = buf.lines().collect();
+
+        // Combine the start, middle, and end into a single string.
+        let text: String = buf_arr[0..=n_start]
+            .par_iter()
+            .chain(&text.lines().collect::<Vec<_>>())
+            .chain(&buf_arr[n_end..])
+            .map(ToOwned::to_owned)
+            .collect::<Vec<_>>()
+            .join("\n");
+
+        // Remove the original file `README.md` as we will be writing to a new one.
+        // If the next OpenOptions write function overwrites the path? is this useful?
+        crossbeam::scope(|_| {
+            fs::remove_file(path).map_err(|e| ParserError::Io(Arc::new(e))).unwrap()
+        })
+        .map_err(|e| ParserError::ChannelError(anyhow!("{e:?}").to_string()))?;
+
+        // Create a new file and write the updated content: Write all to new README.md.
+        fs::OpenOptions::new()
+            .create(true)
+            .write(true)
+            .open(path)
+            .map_err(|e| ParserError::Io(e.into()))?
+            .write_all(text.as_bytes())
             .map_err(|e| ParserError::Io(e.into()))?;
 
         Ok(())
