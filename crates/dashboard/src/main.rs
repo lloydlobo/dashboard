@@ -117,7 +117,7 @@ fn try_main() -> app::Result<(), AppError> {
         .join("\n");
     let block = CommentBlock::new("tag_1".to_string());
     let path = Path::new(PATH_MD_OUTPUT);
-    findrepl::replace(&text, block, &path).map_err(AppError::Parsing)
+    findrepl::replace(&text, block, path).map_err(AppError::Parsing)
 }
 
 //------------------------------------------------------------------------------
@@ -236,9 +236,9 @@ pub mod config {
 
 pub mod db {
 
-    use std::sync::Arc;
+    
 
-    use anyhow::{anyhow, Context};
+    
     use serde::{Deserialize, Serialize};
     use xshell::{cmd, Shell};
 
