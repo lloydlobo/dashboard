@@ -37,11 +37,7 @@
 
 mod markdown;
 
-use std::{
-    fs::{File, OpenOptions},
-    io::Write,
-    path::Path,
-};
+use std::{fs::OpenOptions, path::Path, sync::Arc};
 
 use anyhow::anyhow;
 use app::PATH_JSON_GH_REPO_LIST;
@@ -61,12 +57,6 @@ pub fn main() -> app::Result<(), app::AppError> {
         .filter_level(log::LevelFilter::Info)
         .filter_level(log::LevelFilter::Debug)
         .init();
-
-    // let block = findrepl::CommentBlock {
-    //     section_name: "tag_1".to_string(),
-    //     marker: (Marker::Start, Marker::End),
-    // };
-
     if let Err(e) = try_main() {
         eprintln!("{}", anyhow!(e));
         std::process::exit(1)
@@ -74,20 +64,23 @@ pub fn main() -> app::Result<(), app::AppError> {
     Ok(())
 }
 
-pub fn try_main() -> app::Result<(), app::AppError> {
+fn try_main() -> app::Result<(), app::AppError> {
     let mut dashboard =
         app::App { config: config::Config {}, db: DB { data: None, repo_list: None } };
 
-    dashboard.db.fetch_gh_repo_list_json()?;
+    dashboard.db.fetch_gh_repo_list_json().map_err(|e| app::AppError::AnyhowError(e.into()))?;
 
-    let file: File = OpenOptions::new()
+    let file = OpenOptions::new()
         .read(true)
         .write(true)
         .create(true)
         .open(PATH_JSON_GH_REPO_LIST)
-        .unwrap();
-    serde_json::to_writer_pretty(file, &dashboard.clone().db.data.unwrap()).unwrap();
-    log::info!("Wrote git repo list to file `{PATH_JSON_GH_REPO_LIST}`");
+        .map_err(|e| app::AppError::Io(Arc::new(e)))?;
+
+    serde_json::to_writer_pretty(file, &dashboard.db.data.as_ref().unwrap())
+        .map_err(|e| app::AppError::Io(Arc::new(e.into())))?;
+
+    log::info!("Wrote git repo list to file {}", PATH_JSON_GH_REPO_LIST);
 
     let list = dashboard
         .db
@@ -95,11 +88,12 @@ pub fn try_main() -> app::Result<(), app::AppError> {
         .unwrap()
         .iter()
         .map(|repo| GitRepoListItem {
-            name: (*repo.name).to_string(),
-            url: (*repo.url).to_string(),
-            description: (*repo.description).to_string(),
+            name: repo.name.to_string(),
+            url: repo.url.to_string(),
+            description: repo.description.to_string(),
         })
         .collect();
+
     dashboard.db.repo_list = Some(list);
 
     let text: String = dashboard
@@ -111,19 +105,58 @@ pub fn try_main() -> app::Result<(), app::AppError> {
         .collect::<Vec<_>>()
         .join("\n");
 
-    if let Err(e) =
-        findrepl::replace(&text, CommentBlock::new("tag_1".to_string()), Path::new(PATH_MD_OUTPUT))
-    {
-        panic!("called `Result::unwrap()` on an `Err` value: {}", &e)
-    };
+    findrepl::replace(&text, CommentBlock::new("tag_1".to_string()), Path::new(PATH_MD_OUTPUT))
+        .map_err(|e| app::AppError::RegexError(e.into()))?;
 
     Ok(())
 }
+
+/* fn try_main() -> app::Result<(), app::AppError> {
+    let mut dashboard =
+        app::App { config: config::Config {}, db: DB { data: None, repo_list: None } };
+    if let Err(e) = dashboard.db.fetch_gh_repo_list_json() {
+        return Err(app::AppError::AnyhowError(e.into()));
+    }
+    let file = OpenOptions::new()
+        .read(true)
+        .write(true)
+        .create(true)
+        .open(PATH_JSON_GH_REPO_LIST)
+        .map_err(|e| app::AppError::Io(Arc::new(e)))?;
+    serde_json::to_writer_pretty(file, &dashboard.db.data.as_ref().unwrap())
+        .map_err(|e| app::AppError::Io(Arc::new(e.into())))?;
+    log::info!("Wrote git repo list to file {}", PATH_JSON_GH_REPO_LIST);
+    let list = dashboard
+        .db
+        .data
+        .unwrap()
+        .iter()
+        .map(|repo| GitRepoListItem {
+            name: repo.name.to_string(),
+            url: repo.url.to_string(),
+            description: repo.description.to_string(),
+        })
+        .collect();
+    dashboard.db.repo_list = Some(list);
+    let text: String = dashboard
+        .db
+        .repo_list
+        .unwrap()
+        .iter()
+        .map(markdown::fmt_markdown_list_item)
+        .collect::<Vec<_>>()
+        .join("\n");
+    findrepl::replace(&text, CommentBlock::new("tag_1".to_string()), Path::new(PATH_MD_OUTPUT))
+        .map_err(|e| app::AppError::RegexError(e.into()))?;
+    Ok(())
+} */
 
 //------------------------------------------------------------------------------
 
 pub mod app {
     //! `app` module contains `App` which contains prelude for all modules in this crate.
+
+    use std::sync::Arc;
 
     use serde::{Deserialize, Serialize};
     use thiserror::Error;
@@ -144,30 +177,41 @@ pub mod app {
     pub type Result<T, E> = anyhow::Result<T, E>;
 
     /// `AppError`
-    ///
-    /// # Example
-    ///
-    /// ```ignore
-    /// fn simple_err(msg: &str) -> Result<(), anyhow::Error> {
-    ///     return Err(anyhow!("MissingAttribute: {}", msg));
-    /// }
-    /// fn return_err(msg: &str) -> AppError {
-    ///     AppError::UnknownWithMsg(msg.to_string())
-    /// }
-    /// ```
-    #[derive(Error, Debug)]
+    #[derive(Debug, thiserror::Error)]
     pub enum AppError {
-        #[error("Invalid header (expected {expected:?}, got {found:?})")]
-        InvalidHeader { expected: String, found: String },
-
-        #[error("Missing attribute: {0}")]
-        MissingAttribute(String),
-
-        #[error("Unknown error")]
-        Unknown,
-
-        #[error("Unknown error: {0}")]
-        UnknownWithMsg(String),
+        /// An error occurred while performing an I/O operation
+        /// Instead of cloning the `std::io::Error`, we can store the error within the `AppError`
+        /// as an `Arc` (Atomic Reference Counted) smart pointer. Allows for multiple references to
+        /// the same error to be stored in different places without having to clone it.
+        #[error("I/O error: {0}")]
+        Io(#[from] Arc<std::io::Error>),
+        /// An error occurred while performing an I/O operation with the xshell terminal.
+        #[error("Xshell I/O error: {0}")]
+        XshellIo(#[from] Arc<xshell::Error>),
+        /// An error occurred while fetching the GitHub CLI response.
+        #[error("GitHub CLI error: {0}")]
+        Reqwest(#[from] reqwest::Error),
+        /// An error occurred while processing the GitHub Actions workflow or CI cron job.
+        #[error("GitHub Actions/CI error: {0}")]
+        GithubActionsCi(String),
+        /// An error occurred in the code logic
+        #[error("Error in logic: {0}")]
+        LogicBug(String),
+        /// An error occurred using the anyhow library
+        #[error("Anyhow error: {0}")]
+        AnyhowError(#[from] anyhow::Error),
+        /// An error occurred while parsing input
+        #[error("Parsing error: {0}")]
+        Parsing(#[from] parser::ParserError),
+        /// An error occurred with a regular expression
+        #[error("Regex error")]
+        RegexError(#[from] regex::Error),
+        /// An error occurred while interacting with the `xshell` terminal
+        #[error("Xshell error")]
+        XshellError(String),
+        /// An error occurred with Github Actions or CI workflows
+        #[error("CI/CD error")]
+        CiCdError(String),
     }
 
     #[allow(dead_code)]
@@ -208,6 +252,8 @@ pub mod config {
 
 pub mod db {
 
+    use std::sync::Arc;
+
     use anyhow::{anyhow, Context};
     use serde::{Deserialize, Serialize};
     use xshell::{cmd, Shell};
@@ -237,8 +283,9 @@ pub mod db {
                     .unwrap();
             log::info!("Fetched repositories with command: `gh repo list`");
 
+            // "Failed to Deserialize repositories. {}",
             let repos_struct_de: Vec<GitRepo> = serde_json::from_str(&repos_json_ser)
-                .context(anyhow!("Failed to Deserialize repositories"))
+                .map_err(|e| AppError::Io(Arc::new(e.into())))
                 .unwrap();
             log::info!("Deserialized {} repositories", repos_struct_de.len());
 
@@ -310,3 +357,127 @@ pub mod gh {
 }
 
 //------------------------------------------------------------------------------
+
+// mod pretty_error {
+//
+//     use miette::prelude::*;
+// In this example, each variant of the AppError struct is passed to miette::code to format the
+// error message as a code block. The resulting value is then passed to the write! macro to format
+// the error for display.     impl Display for AppError {
+//         fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+//             match self {
+//                 AppError::GitHubApi(e) => {
+//                     let error = e.to_string();
+//                     let error = miette::code(&error);
+//                     write!(f, "GitHub API error: {}", error)
+//                 }
+//                 AppError::Regex(e) => {
+//                     let error = e.to_string();
+//                     let error = miette::code(&error);
+//                     write!(f, "Regex error: {}", error)
+//                 }
+//                 AppError::Io(e) => {
+//                     let error = e.to_string();
+//                     let error = miette::code(&error);
+//                     write!(f, "I/O error: {}", error)
+//                 }
+//                 AppError::Anyhow(e) => {
+//                     let error = e.to_string();
+//                     let error = miette::code(&error);
+//                     write!(f, "Anyhow error: {}", error)
+//                 }
+//                 AppError::Shell(e) => {
+//                     let error = e.to_string();
+//                     let error = miette::code(&error);
+//                     write!(f, "Shell error: {}", error)
+//                 }
+//                 AppError::Printer(e) => {
+//                     let error = e.to_string();
+//                     let error = miette::code(&error);
+//                     write!(f, "Printer error: {}", error)
+//                 }
+//             }
+//         }
+//     }
+// }
+
+// pub fn try_main() -> app::Result<(), app::AppError> {
+//     let mut dashboard =
+//         app::App { config: config::Config {}, db: DB { data: None, repo_list: None } };
+//     dashboard.db.fetch_gh_repo_list_json()?;
+//     let file: File = OpenOptions::new() .read(true) .write(true) .create(true)
+// .open(PATH_JSON_GH_REPO_LIST) .unwrap();     serde_json::to_writer_pretty(file,
+// &dashboard.clone().db.data.unwrap()).unwrap();     log::info!("Wrote git repo list to file
+// `{PATH_JSON_GH_REPO_LIST}`");     let list = dashboard .db .data .unwrap() .iter()
+//         .map(|repo| GitRepoListItem {
+//             name: (*repo.name).to_string(),
+//             url: (*repo.url).to_string(),
+//             description: (*repo.description).to_string(),
+//         })
+//         .collect();
+//     dashboard.db.repo_list = Some(list);
+//     let text: String = dashboard .db .repo_list .unwrap() .iter()
+// .map(markdown::fmt_markdown_list_item) .collect::<Vec<_>>() .join("\n");
+//     if let Err(e) =
+//         findrepl::replace(&text, CommentBlock::new("tag_1".to_string()),
+// Path::new(PATH_MD_OUTPUT))     {
+//         panic!("called `Result::unwrap()` on an `Err` value: {}", &e)
+//     };
+//     Ok(())
+// }
+
+// #[derive(Error, Debug)]
+// pub enum AppError {
+//     #[error("Invalid header (expected {expected:?}, got {found:?})")]
+//     InvalidHeader { expected: String, found: String },
+//
+//     #[error("Missing attribute: {0}")]
+//     MissingAttribute(String),
+//
+//     #[error("Unknown error")]
+//     Unknown,
+//
+//     #[error("Unknown error: {0}")]
+//     UnknownWithMsg(String),
+// }
+
+/* fn try_main() -> app::Result<(), app::AppError> {
+    let mut dashboard =
+        app::App { config: config::Config {}, db: DB { data: None, repo_list: None } };
+    if let Err(e) = dashboard.db.fetch_gh_repo_list_json() {
+        return Err(e);
+    }
+    let file = OpenOptions::new()
+        .read(true)
+        .write(true)
+        .create(true)
+        .open(PATH_JSON_GH_REPO_LIST)
+        .map_err(|e| anyhow!("Failed to open file `{}`: {}", PATH_JSON_GH_REPO_LIST, e))?;
+    serde_json::to_writer_pretty(file, &dashboard.db.data.as_ref().unwrap())
+        .map_err(|e| anyhow!("Failed to write to file `{}`: {}", PATH_JSON_GH_REPO_LIST, e))?;
+    log::info!("Wrote git repo list to file `{}`", PATH_JSON_GH_REPO_LIST);
+    let list = dashboard
+        .db
+        .data
+        .clone()
+        .unwrap()
+        .iter()
+        .map(|repo| GitRepoListItem {
+            name: repo.name.to_string(),
+            url: repo.url.to_string(),
+            description: repo.description.to_string(),
+        })
+        .collect();
+    dashboard.db.repo_list = Some(list);
+    let text: String = dashboard
+        .db
+        .repo_list
+        .unwrap()
+        .iter()
+        .map(markdown::fmt_markdown_list_item)
+        .collect::<Vec<_>>()
+        .join("\n");
+    findrepl::replace(&text, CommentBlock::new("tag_1".to_string()), Path::new(PATH_MD_OUTPUT))
+        .map_err(|e| anyhow!("Failed to replace text in file `{}`: {}", PATH_MD_OUTPUT, e))?;
+    Ok(())
+} */
