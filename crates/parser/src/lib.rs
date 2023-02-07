@@ -7,23 +7,12 @@
 //! finds the start and end markers, removes the content between them, and inserts the updated text.
 //! The updated content is then written back to the file and the function returns a Result.
 
-pub mod error;
+#![deny(missing_debug_implementations, missing_docs)]
 
-use std::{path::Path, time::Instant};
+mod error;
+mod macros;
 
-use anyhow::anyhow;
-use findrepl::CommentBlock;
-use log::{
-    info,
-    LevelFilter::{Debug, Info},
-};
-use pretty_env_logger::env_logger::builder;
-
-/// `Result<T, E>` is an alias for the Result type from the anyhow crate.
-/// It is used as the return type for functions that may fail and return an error.
-pub type Result<T, E> = anyhow::Result<T, E>;
-
-pub use findrepl::*;
+pub use crate::{error::*, findrepl::*};
 
 pub mod findrepl {
     //! # findrepl
@@ -78,70 +67,23 @@ pub mod findrepl {
         fmt::Display,
         fs::{self, File, OpenOptions},
         io::{Read, Write},
-        path::{Path, PathBuf},
+        path::Path,
     };
 
     use anyhow::anyhow;
     use regex::Regex;
 
-    use super::Result;
-    use crate::error::{Error, ParserError};
-
-    /// The macro `comment_block` generates the start and end marker strings of a comment section in
-    /// a Markdown file.
-    ///
-    /// Generates a string in the format of `<!--MARKER_SECTION:SECTION_NAME-->`
-    ///
-    /// The macro takes in two arguments: `$section_name` and `$marker`.
-    /// The first argument, `$section_name`, specifies the name of the comment section.
-    /// The second argument, `$marker`, specifies whether it's the start or end marker of the
-    /// comment section.
-    ///
-    /// # Internal Notes for Developers
-    ///
-    /// This macro defines the start and end markers of a comment section in a Markdown file where:
-    /// * The start marker is defined by the string `<!--START_SECTION:` concatenated with the
-    ///   `$section_name` argument.
-    /// * The end marker is defined by the string `<!--END_SECTION:` concatenated with the
-    ///   `$section_name` argument.
-    #[macro_export]
-    macro_rules! comment_block {
-        ($section_name:expr, $marker:expr) => {
-            format!("<!--{}_SECTION:{}-->", $marker, $section_name)
-        };
-    }
-
-    // impl<'a> Default for Input<'a> {
-    //     fn default() -> Self {
-    //         Self {
-    //             text: Default::default(),
-    //             block: Default::default(),
-    //             path: Path::new("README.md"),
-    //         }
-    //     }
-    // }
-
-    // Certainly! You can make the SECTION parameter dynamic by changing the macro definition to
-    // accept an additional argument for the section name. This way, you can pass in the section
-    // name at runtime, instead of having it hardcoded in the macro definition. Here's an updated
-    // version of the macro: In this updated version, the macro accepts three arguments:
-    // $section_name, $marker, and $section. The $section argument is used to dynamically specify
-    // the section name in the generated string. The $section_name and $marker arguments work just
-    // like in the previous version.
-    #[macro_export]
-    macro_rules! comment_block_dyn {
-        ($section_name:expr, $marker:expr, $section:expr) => {
-            format!("<!--{}_{}:{}-->", $marker, $section, $section_name)
-        };
-    }
+    use crate::{comment_block, error::ParserError, printer};
 
     /// `Marker` is an enumeration of marker values, `Start` and `End`.
-    /// These markers are used to indicate the start and end of a comment block in some
-    /// implementation.
+    /// These markers are used to indicate the start and end of a [`CommentBlock`] comment block in
+    /// some implementation.
     #[derive(Debug, Default, Clone, PartialEq)]
     pub enum Marker {
+        /// The end of a comment block section.
         #[default]
         End,
+        /// The start of a comment block section.
         Start,
     }
 
@@ -169,6 +111,7 @@ pub mod findrepl {
     /// It provides a constructor new for creating new CommentBlock values, and two methods:
     /// `start_marker` and `end_marker`, which return the start and end markers as `String` values.
     impl CommentBlock {
+        /// Creates a new [`CommentBlock`].
         pub fn new(section_name: String) -> Self {
             Self {
                 section_name: section_name.trim().to_string(),
@@ -189,30 +132,26 @@ pub mod findrepl {
         // }
     }
 
-    /// `try_main`
-    ///
-    /// First copy the existing file into a buffer.
-    /// Then find the start and end of sections.
-    /// Mutate and replace the content btw them with TO_UPDATE_WITH.
-    /// Write all to file.
-    //
-    // PERF: Create regex to find all `section_names` from copied `README.md`.
-    //
-    // The try_lib_main function first opens the file and reads its contents into a string buffer.
+    /// `replace` function first opens the file and reads its contents into a string buffer.
     // It then creates a CommentBlock struct with a specified section name and generates the start
     // and end markers from it. The function then finds the positions of the start and end
     // markers in the buffer using the position method. It removes the content between the
     // markers using the clear method, inserts the updated content using the splice method, and
     // updates the file with the new content.
-    /// # Panics
     ///
-    /// Panics if:
+    /// # Panics
     ///
     /// * File at `path` doesn't exist.
     /// * start or end marker are not found'.
     /// * `path` being passed to the replace function. - Instead of passing input.path which is a
     ///   Path object, you should pass &path, which is the path to the tempfile as a string slice.
-    pub fn replace(text: &str, block: CommentBlock, path: &Path) -> Result<(), ParserError> {
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error if it panics.
+    //
+    // PERF: Create regex to find all `section_names` from copied `README.md`.
+    pub fn replace(text: &str, block: CommentBlock, path: &Path) -> super::Result<()> {
         // Find the start and end of sections surrounded with comment block.
         let re_start = comment_block!(block.section_name, block.marker.0);
         let re_end = comment_block!(block.section_name, block.marker.1);
@@ -221,25 +160,21 @@ pub mod findrepl {
         let mut f = File::open(path)?;
         let mut buf = String::new();
         f.read_to_string(&mut buf)?;
-        log::info!("Read and copied file:\n>> {}\n```\n{buf}\n```", path.display());
+        log::debug!("Read and copied file:\n>> {}\n```\n{buf}\n```", path.display());
 
         // Returns the start and end position of regex section
-        let (n_start, n_end) = match get_section_positions(&buf, &re_start, &re_end) {
-            Ok(it) => it,
-            Err(err) => return Err(ParserError::ReplaceError(anyhow!(err).to_string())),
-        };
-        // let (n_start, n_end) = (get_pos(&buf, &re_start)?, get_pos(&buf, &re_end)?);
+        let (n_start, n_end) = get_block_positions(&buf, &re_start, &re_end)
+            .map_err(|e| ParserError::RegexError(e.into()))?;
 
         // Split content into lines and update the section
         let buf_arr: Vec<&str> = buf.lines().collect();
         let mut start = buf_arr[0..=n_start].to_owned();
         let mut end = buf_arr[n_end..].to_owned();
         let mut middle = text.lines().collect();
+        // Join start, updated middle, and end with new line.
         start.append(&mut middle);
         end.append(&mut vec!["\n"]);
         start.append(&mut end);
-
-        // Join start, updated middle, and end with new line.
         let updated_content: String = start.join("\n");
 
         // Remove the original file `README.md`
@@ -247,55 +182,70 @@ pub mod findrepl {
 
         // Create a new file and write the updated content: Write all to new README.md.
         let mut f = OpenOptions::new().create(true).write(true).open(path)?;
-
-        if let Err(e) = f.write_all(updated_content.as_bytes()) {
-            return Err(ParserError::WriteError(e));
-        }
+        f.write_all(updated_content.as_bytes()).map_err(|e| ParserError::Io(e.into()))?;
 
         Ok(())
     }
 
     /// Returns the line positions of start and end markers for the given section in the buffer.
-    fn get_section_positions(
+    ///
+    /// ```rust
+    /// use parser::*;
+    /// fn main() {
+    ///     let re_start = "<!--START_SECTION:tag_1-->";
+    ///     let re_end = "<!--END_SECTION:tag_1-->";
+    ///
+    ///     let buf: &str = r#"<!--START_SECTION:tag_1-->
+    /// * [lorem](https://github.com/username/username) — username's GitHub profile.
+    /// * [foobar](https://github.com/username/foobar)
+    /// * [bar](https://github.com/username/bar) — Lorem ipsum dolor sit amet, qui minim labore
+    ///   adipisicing minim sint cillum sint consectetur cupidatat. ...
+    /// <!--END_SECTION:tag_1-->"#;
+    ///
+    ///     let (start, end) = get_block_positions(buf, &re_start, &re_end).unwrap();
+    ///     assert_eq!((start, end), (0, 5));
+    /// }
+    /// ```
+    pub fn get_block_positions(
         buf: &str,
         re_start: &str,
         re_end: &str,
-    ) -> Result<(usize, usize), Error> {
-        let start_re = Regex::new(&format!(r"{}", re_start))?;
-        let end_re = Regex::new(&format!(r"{}", re_end))?;
+    ) -> super::Result<(usize, usize)> {
+        let start = Regex::new(&format!(r"{}", re_start)).map_err(ParserError::RegexError)?;
+        let end = Regex::new(&format!(r"{}", re_end)).map_err(ParserError::RegexError)?;
 
-        let start = start_re.find(buf).ok_or_else(|| anyhow!("start marker not found"))?;
-        let end = end_re.find(buf).ok_or_else(|| anyhow!("end marker not found"))?;
+        let start = start
+            .find(buf)
+            .ok_or_else(|| regex::Error::Syntax("start marker not found".to_string()))
+            .map_err(ParserError::RegexError)?;
+        let end = end
+            .find(buf)
+            .ok_or_else(|| regex::Error::Syntax("end marker not found".to_string()))
+            .map_err(ParserError::RegexError)?;
+        assert!(start.start() < end.start());
 
-        let n_start = buf[..start.start()].lines().count();
-        let n_end = buf[..end.start()].lines().count();
+        let start = buf[..start.start()].lines().count();
+        let end = buf[..end.start()].lines().count();
+        assert!(start < end);
 
-        Ok((n_start, n_end))
+        Ok((start, end))
     }
 
-    /// Returns the line position of `re` in `buf`.
-    fn get_pos(buf: &str, re: &str) -> Result<usize, Error> {
-        buf.lines()
-            .position(|line| line.contains(&re))
-            .ok_or_else(|| anyhow!("start marker not found"))
-    }
-}
+    #[cfg(test)]
+    mod tests {
+        use std::{
+            fs::File,
+            io::{Read, Write},
+            path::PathBuf,
+        };
 
-#[cfg(test)]
-mod tests {
-    use std::{
-        fs::File,
-        io::{Read, Write},
-        path::{Path, PathBuf},
-    };
+        use pretty_assertions::assert_eq;
+        use quickcheck::{quickcheck, Arbitrary, Gen};
+        use tempfile::tempdir;
 
-    use pretty_assertions::assert_eq;
-    use quickcheck::{quickcheck, Arbitrary, Gen};
-    use tempfile::tempdir;
+        use super::*;
 
-    use super::*;
-
-    const INITIAL_CONTENT: &str = r#"# README Test
+        const INITIAL_CONTENT: &str = r#"# README Test
 
 This is a dashboard to display all users projects.
 
@@ -306,102 +256,153 @@ This is a dashboard to display all users projects.
 
 Lorem ipsum dolor sit amet, qui minim labore adipisicing minim sint cillum sint consectetur cupidatat."#;
 
-    const TO_UPDATE_WITH: &str = r#"* [d](...) - ...
+        const TO_UPDATE_WITH: &str = r#"* [d](...) - ...
  * [e](...) - ...
  * [a](...) - ...
  * [b](...) - ...
  * [a](...) - ...
  * [f](...) - ..."#;
 
-    #[derive(Debug, PartialEq, Clone, Default)]
-    pub struct Input {
-        pub text: String,
-        pub block: CommentBlock,
-    }
-    impl Arbitrary for Input {
-        /// Return an arbitrary value.
-        ///
-        /// Gen represents a PRNG. It is the source of randomness from which QuickCheck will
-        /// generate values. An instance of `Gen` is passed to every invocation of
-        /// `Arbitrary::arbitrary`, which permits callers to use lower level RNG routines to
-        /// generate values.
-        fn arbitrary(g: &mut Gen) -> Self {
-            Input {
-                text: Arbitrary::arbitrary(g),
-                block: CommentBlock::new(Arbitrary::arbitrary(g)),
+        #[derive(Debug, PartialEq, Clone, Default)]
+        pub struct Input {
+            pub text: String,
+            pub block: CommentBlock,
+        }
+        impl Arbitrary for Input {
+            /// Return an arbitrary value.
+            ///
+            /// Gen represents a PRNG. It is the source of randomness from which QuickCheck will
+            /// generate values. An instance of `Gen` is passed to every invocation of
+            /// `Arbitrary::arbitrary`, which permits callers to use lower level RNG routines to
+            /// generate values.
+            fn arbitrary(g: &mut Gen) -> Self {
+                Input {
+                    text: Arbitrary::arbitrary(g),
+                    block: CommentBlock::new(Arbitrary::arbitrary(g)),
+                }
             }
         }
-    }
 
-    //--------------------------------------------------------------------------------
-
-    #[test]
-    fn should_replace() {
-        let input = Input {
-            text: TO_UPDATE_WITH.to_string(),
-            block: CommentBlock::new("tag_1".to_string()),
-            // path: Path::new("README.md").to_path_buf(),
-        };
-
-        // Initialize temp files.
-        let dir = tempdir().unwrap();
-        let path = dir.path().join("README.md");
-
-        // Write INITIAL_CONTENT to tempfile.
-        let mut f = File::create(&path).unwrap();
-        f.write_all(INITIAL_CONTENT.as_bytes()).unwrap();
-        test_if_written(&path, INITIAL_CONTENT)
-            .expect("Should write and match the initial content");
-
-        let result = replace(&input.text, input.block, &path);
-        assert_eq!(result.is_ok(), true, "Should replace text with `parser::findrepl`");
-
-        // Check if the file was updated with new text.
-        let mut f = File::open(&path).unwrap();
-        let mut buf = String::new();
-        f.read_to_string(&mut buf).unwrap();
-        assert_eq!(buf.contains(&input.text), true);
-    }
-
-    // This test will generate random Input values & call the prop function with each value. If the
-    // function returns false for any value, quickcheck will stop & print the failing input value.
-    // #[test]
-    // fn quickcheck_should_replace() {
-    //     fn prop(input: Input) -> bool {
-    //         // Initialize temp files.
-    //         let dir = tempdir().unwrap();
-    //         let path: PathBuf = dir.path().join("README.md");
-    //         let mut f = File::create(&path).unwrap();
-    //
-    //         // Write INITIAL_CONTENT to tempfile.
-    //         f.write_all(INITIAL_CONTENT.as_bytes()).unwrap();
-    //         test_if_written(&path, INITIAL_CONTENT)
-    //             .expect("Should write and match the initial content");
-    //
-    //         let result = replace(&input.text, input.block, path.as_path());
-    //         assert!(result.is_ok());
-    //
-    //         // Check if the file was updated with new text.
-    //         let mut f = File::open(&path).unwrap();
-    //         let mut buf = String::new();
-    //         f.read_to_string(&mut buf).unwrap();
-    //         buf.contains(&input.text)
-    //     }
-    //
-    //     quickcheck(prop as fn(Input) -> bool);
-    // }
-
-    /// Check if the file was updated with new text.
-    fn test_if_written(path: &PathBuf, initial_content: &str) -> anyhow::Result<()> {
-        let mut f = File::open(path).unwrap();
-        let mut buf = String::new();
-        f.read_to_string(&mut buf).unwrap();
-        let path = path.to_string_lossy();
-        Ok(
-            assert_eq!(
+        /// Check if the file was updated with new text.
+        fn test_if_written(path: &PathBuf, initial_content: &str) -> anyhow::Result<()> {
+            let mut f = File::open(path).unwrap();
+            let mut buf = String::new();
+            f.read_to_string(&mut buf).unwrap();
+            let path = path.to_string_lossy();
+            Ok(assert_eq!(
                 buf, initial_content,
                 "Should write `INITIAL_CONTENT` to tempfile at {path}",
-            ),
-        )
+            ))
+        }
+
+        //--------------------------------------------------------------------------------
+
+        #[test]
+        fn should_replace() {
+            let input = Input {
+                text: TO_UPDATE_WITH.to_string(),
+                block: CommentBlock::new("tag_1".to_string()),
+                // path: Path::new("README.md").to_path_buf(),
+            };
+            // Initialize temp files.
+            let dir = tempdir().unwrap();
+            let path = dir.path().join("README.md");
+            // Write INITIAL_CONTENT to tempfile.
+            let mut f = File::create(&path).unwrap();
+            f.write_all(INITIAL_CONTENT.as_bytes()).unwrap();
+            test_if_written(&path, INITIAL_CONTENT)
+                .expect("Should write and match the initial content");
+            let result = replace(&input.text, input.block, &path);
+            assert_eq!(result.is_ok(), true, "Should replace text with `parser::findrepl`");
+            // Check if the file was updated with new text.
+            let mut f = File::open(&path).unwrap();
+            let mut buf = String::new();
+            f.read_to_string(&mut buf).unwrap();
+            assert_eq!(buf.contains(&input.text), true);
+        }
+
+        #[test]
+        fn should_get_section_positions() {
+            let block = CommentBlock::new("tag_1".to_string());
+            let buf: &str = r#"<!--START_SECTION:tag_1-->
+* [lorem](https://github.com/username/username) — username's GitHub profile.
+* [foobar](https://github.com/username/foobar)
+* [bar](https://github.com/username/bar) — Lorem ipsum dolor sit amet, qui minim labore
+  adipisicing minim sint cillum sint consectetur cupidatat. ...
+<!--END_SECTION:tag_1-->"#;
+
+            let re_start = comment_block!(block.section_name, block.marker.0);
+            let re_end = comment_block!(block.section_name, block.marker.1);
+            assert_eq!(re_start, "<!--START_SECTION:tag_1-->");
+            assert_eq!(re_end, "<!--END_SECTION:tag_1-->");
+
+            let (start, end) = get_block_positions(buf, &re_start, &re_end).expect(
+                "Should returns the line positions of start and end markers for the given buffer.",
+            );
+            assert!(start < end);
+            assert_eq!((start, end), (0, 5));
+        }
+
+        #[test]
+        fn should_quickcheck_get_section_positions() {
+            let block = CommentBlock::new("tag_1".to_string());
+            // let quick_fuzz = "TODO";
+            let quick_fuzz = quickcheck::random_string(100);
+            let buf =
+                format!("<!--START_SECTION:tag_1-->\n{}\n<!--END_SECTION:tag_1-->", quick_fuzz);
+
+            let re_start = comment_block!(block.section_name, block.marker.0);
+            let re_end = comment_block!(block.section_name, block.marker.1);
+            assert_eq!(re_start, "<!--START_SECTION:tag_1-->");
+            assert_eq!(re_end, "<!--END_SECTION:tag_1-->");
+
+            let (start, end) = get_block_positions(&buf, &re_start, &re_end).expect(
+                "Should returns the line positions of start and end markers for the given buffer.",
+            );
+            assert!(start < end);
+            assert_eq!((start, end), (0, 5));
+        }
+    }
+}
+
+mod printer {
+    use std::io::Write;
+
+    use atty::Stream;
+    use termcolor::{BufferWriter, Color, ColorChoice, ColorSpec, WriteColor};
+
+    use crate::error::ParserError;
+    // pub type Result<T> = std::result::Result<T, ParserError>;
+    // use crate::Result;
+
+    pub fn new() -> Result<(), ParserError> {
+        let mut bufwtr = BufferWriter::stderr(ColorChoice::Always);
+        let mut buffer = bufwtr.buffer();
+
+        buffer.set_color(ColorSpec::new().set_fg(Some(Color::Green)))?;
+        writeln!(&mut buffer, "green text!")?;
+        bufwtr.print(&buffer)?;
+
+        Ok(())
+    }
+
+    pub fn is_stdout_tty(stream: Stream) -> Result<(), ParserError> {
+        let mut bufwtr = BufferWriter::stderr(ColorChoice::Always);
+        let mut buffer = bufwtr.buffer();
+
+        match atty::is(stream) {
+            true => {
+                buffer.set_color(ColorSpec::new().set_fg(Some(Color::Green)))?;
+                writeln!(&mut buffer, "I'm a terminal")?;
+                bufwtr.print(&buffer)?;
+            }
+            false => {
+                buffer.set_color(ColorSpec::new().set_fg(Some(Color::Red)))?;
+                writeln!(&mut buffer, "I'm not a terminal")?;
+                bufwtr.print(&buffer)?;
+            }
+        }
+
+        Ok(())
     }
 }

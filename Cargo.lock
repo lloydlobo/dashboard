@@ -560,15 +560,14 @@ name = "parser"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "atty",
  "lazy_static",
  "log",
  "pretty_assertions",
- "pretty_env_logger",
  "quickcheck",
  "regex",
- "serde",
- "serde_json",
  "tempfile",
+ "termcolor",
  "thiserror",
 ]
 
