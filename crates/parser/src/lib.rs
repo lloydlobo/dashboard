@@ -365,7 +365,7 @@ pub mod findrepl {
         // Struct representing a block of text
         #[derive(Clone, Debug, Eq, PartialEq)]
         struct Text {
-            content: Box<String>,
+            content: String,
         }
 
         // Implement the `Arbitrary` trait for the `Text` struct String type implements Arbitrary
@@ -376,7 +376,7 @@ pub mod findrepl {
                 let mut rng = rand::thread_rng(); // Create a random number generator
                 let len: usize = Gen::new(rng.gen_range(30..100)).size(); // Generate a random length for the content
                 let lines: Vec<_> = (0..len).map(|_| String::arbitrary(g)).collect(); // Generate `len` random lines of text
-                let content: Box<String> = Box::new(lines.join("\n")); // Join the lines into a single multi-line string
+                let content = lines.join("\n"); // Join the lines into a single multi-line string
 
                 Text { content }
             }
