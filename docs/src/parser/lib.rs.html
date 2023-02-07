@@ -417,6 +417,13 @@
 <a href="#417" id="417">417</a>
 <a href="#418" id="418">418</a>
 <a href="#419" id="419">419</a>
+<a href="#420" id="420">420</a>
+<a href="#421" id="421">421</a>
+<a href="#422" id="422">422</a>
+<a href="#423" id="423">423</a>
+<a href="#424" id="424">424</a>
+<a href="#425" id="425">425</a>
+<a href="#426" id="426">426</a>
 </pre><pre class="rust"><code><span class="doccomment">//! # parser
 //!
 //! ## [`findrepl`]
@@ -526,7 +533,7 @@
         sync::Arc,
     };
 
-    <span class="kw">use </span>regex::Regex;
+    <span class="kw">use </span>regex::{Error::Syntax, Regex};
 
     <span class="kw">use crate</span>::{comment_block, error::ParserError};
 
@@ -598,8 +605,12 @@
     // PERF: Create regex to find all `section_names` from copied `README.md`.
     </span><span class="kw">pub fn </span>replace(text: <span class="kw-2">&amp;</span>str, block: CommentBlock, path: <span class="kw-2">&amp;</span>Path) -&gt; <span class="kw">super</span>::Result&lt;()&gt; {
         <span class="comment">// Find the start and end of sections surrounded with comment block.
-        </span><span class="kw">let </span>re_start = <span class="macro">comment_block!</span>(block.section_name, block.marker.<span class="number">0</span>);
-        <span class="kw">let </span>re_end = <span class="macro">comment_block!</span>(block.section_name, block.marker.<span class="number">1</span>);
+        // let re_start = comment_block!(block.section_name, block.marker.0);
+        // let re_end = comment_block!(block.section_name, block.marker.1);
+        </span><span class="kw">let </span>(re_start, re_end) = rayon::join(
+            || <span class="macro">comment_block!</span>(block.section_name, block.marker.<span class="number">0</span>),
+            || <span class="macro">comment_block!</span>(block.section_name, block.marker.<span class="number">1</span>),
+        );
 
         <span class="comment">// First copy the existing file into a buffer.
         </span><span class="kw">let </span><span class="kw-2">mut </span>buf = String::new();
@@ -664,23 +675,26 @@
         re_start: <span class="kw-2">&amp;</span>str,
         re_end: <span class="kw-2">&amp;</span>str,
     ) -&gt; <span class="kw">super</span>::Result&lt;(usize, usize)&gt; {
-        <span class="kw">let </span>start = Regex::new(re_start).map_err(ParserError::RegexError)<span class="question-mark">?</span>;
-        <span class="kw">let </span>end = Regex::new(re_end).map_err(ParserError::RegexError)<span class="question-mark">?</span>;
-
-        <span class="kw">let </span>start = start
-            .find(buf)
-            .ok_or_else(|| regex::Error::Syntax(<span class="string">&quot;start marker not found&quot;</span>.to_string()))
-            .map_err(ParserError::RegexError)<span class="question-mark">?</span>;
-        <span class="kw">let </span>end = end
-            .find(buf)
-            .ok_or_else(|| regex::Error::Syntax(<span class="string">&quot;end marker not found&quot;</span>.to_string()))
-            .map_err(ParserError::RegexError)<span class="question-mark">?</span>;
-        <span class="macro">debug_assert!</span>(start.start() &lt; end.start());
-
-        <span class="kw">let </span>start = buf[..start.start()].lines().count();
-        <span class="kw">let </span>end = buf[..end.start()].lines().count();
+        <span class="kw">let </span>(start, end) = rayon::join(
+            || Regex::new(re_start).map_err(ParserError::RegexError),
+            || Regex::new(re_end).map_err(ParserError::RegexError),
+        );
+        <span class="kw">let </span>(start, end) = (start<span class="question-mark">?</span>, end<span class="question-mark">?</span>);
+        <span class="kw">let </span>(start, end) = rayon::join(|| start.find(buf), || end.find(buf));
+        <span class="kw">let </span>(start, end) = (
+            start.ok_or_else(|| Syntax(<span class="string">&quot;start marker not found&quot;</span>.to_string()))<span class="question-mark">?</span>,
+            end.ok_or_else(|| Syntax(<span class="string">&quot;end marker not found&quot;</span>.to_string()))<span class="question-mark">?</span>,
+        );
+        <span class="kw">let </span>((start, end), <span class="kw">_</span>) = rayon::join(
+            || {
+                rayon::join(
+                    || buf[..start.start()].lines().count(),
+                    || buf[..end.start()].lines().count(),
+                )
+            },
+            || <span class="macro">assert!</span>(start.start() &lt; end.start()),
+        );
         <span class="macro">debug_assert!</span>(start &lt; end);
-
         <span class="prelude-val">Ok</span>((start, end))
     }
 
