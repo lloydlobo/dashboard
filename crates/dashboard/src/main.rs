@@ -236,9 +236,6 @@ pub mod config {
 
 pub mod db {
 
-    
-
-    
     use serde::{Deserialize, Serialize};
     use xshell::{cmd, Shell};
 
