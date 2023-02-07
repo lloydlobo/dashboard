@@ -242,6 +242,7 @@ pub mod findrepl {
             .map_err(|e| ParserError::Io(Arc::new(e)))?
             .read_to_string(&mut buf)
             .map_err(|e| ParserError::Io(Arc::new(e)))?;
+
         // Returns the start and end position of regex section.
         let (n_start, n_end) = get_block_positions(&buf, &re_start, &re_end)
             .map_err(|e| ParserError::RegexError(e.into()))?;
