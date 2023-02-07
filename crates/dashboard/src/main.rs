@@ -112,7 +112,7 @@ fn try_main() -> app::Result<(), AppError> {
         .repo_list
         .ok_or_else(|| AppError::LogicBug(anyhow!("Failed to find repo list").to_string()))?
         .iter()
-        .map(markdown::fmt_markdown_list_item)
+        .map(app::fmt_markdown_list_item)
         .collect::<Vec<_>>()
         .join("\n");
     let block = CommentBlock::new("tag_1".to_string());
@@ -129,7 +129,7 @@ pub mod app {
 
     use serde::{Deserialize, Serialize};
 
-    use crate::{config, db::DB};
+    use crate::{config, db::DB, gh::GitRepoListItem};
 
     #[allow(dead_code)]
     /// Name of `dashboard` `package`in `/dashboard/Cargo.toml`.
@@ -156,10 +156,33 @@ pub mod app {
         "url",
     ];
 
+    /// Word count limit for description.
+    pub const DESC_WC: usize = 60;
+
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct App {
         pub(crate) config: config::Config,
         pub(crate) db: DB,
+    }
+
+    // #[macro_export]
+    // macro_rules! comment_block {
+    //     ($section_name:expr, $marker:expr) => {
+    //         format!("<!--{}_SECTION:{}-->", $marker, $section_name)
+    //     };
+    // }
+
+    /// Create and format a new markdown list item with repo name, url and its description.
+    pub(crate) fn fmt_markdown_list_item(i: &GitRepoListItem) -> String {
+        match i.description.is_empty() {
+            true => format!("* [{}]({})", i.name, i.url),
+            false => match i.description.len() > DESC_WC {
+                true => {
+                    format!("* [{}]({}) — {}...", i.name, i.url, i.description.split_at(DESC_WC).0)
+                }
+                false => format!("* [{}]({}) — {}", i.name, i.url, i.description),
+            },
+        }
     }
 
     /// `Result<T, E>`
