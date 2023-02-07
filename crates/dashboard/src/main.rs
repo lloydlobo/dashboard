@@ -46,10 +46,7 @@ use std::{
 use anyhow::anyhow;
 use app::PATH_JSON_GH_REPO_LIST;
 use db::DB;
-use parser::{
-    findrepl::{self, CommentBlock},
-    *,
-};
+use parser::findrepl::{self, CommentBlock};
 
 use crate::{app::PATH_MD_OUTPUT, gh::GitRepoListItem};
 pub use crate::{
@@ -70,7 +67,8 @@ pub fn main() -> app::Result<(), app::AppError> {
     //     marker: (Marker::Start, Marker::End),
     // };
 
-    findrepl::replace(SAMPLE, CommentBlock::new("tag_1"), Path::new("README.md")).unwrap();
+    findrepl::replace(SAMPLE, CommentBlock::new("tag_1".to_string()), Path::new("README.md"))
+        .unwrap();
 
     if let Err(e) = try_main() {
         eprintln!("{}", anyhow!(e));

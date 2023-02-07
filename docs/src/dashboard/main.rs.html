@@ -444,8 +444,6 @@
 <a href="#444" id="444">444</a>
 <a href="#445" id="445">445</a>
 <a href="#446" id="446">446</a>
-<a href="#447" id="447">447</a>
-<a href="#448" id="448">448</a>
 </pre><pre class="rust"><code><span class="doccomment">//! # dashboard
 //!
 //! `dashboard` is list of &quot;GitHub Actions build status&quot; of all the repos under my account, for my
@@ -494,10 +492,7 @@
 <span class="kw">use </span>anyhow::anyhow;
 <span class="kw">use </span>app::PATH_JSON_GH_REPO_LIST;
 <span class="kw">use </span>db::DB;
-<span class="kw">use </span>parser::{
-    findrepl::{<span class="self">self</span>, CommentBlock},
-    <span class="kw-2">*</span>,
-};
+<span class="kw">use </span>parser::findrepl::{<span class="self">self</span>, CommentBlock};
 
 <span class="kw">use crate</span>::{app::PATH_MD_OUTPUT, gh::GitRepoListItem};
 <span class="kw">pub use crate</span>::{
@@ -518,7 +513,8 @@
     //     marker: (Marker::Start, Marker::End),
     // };
 
-    </span>findrepl::replace(SAMPLE, CommentBlock::new(<span class="string">&quot;tag_1&quot;</span>), Path::new(<span class="string">&quot;README.md&quot;</span>)).unwrap();
+    </span>findrepl::replace(SAMPLE, CommentBlock::new(<span class="string">&quot;tag_1&quot;</span>.to_string()), Path::new(<span class="string">&quot;README.md&quot;</span>))
+        .unwrap();
 
     <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = try_main() {
         <span class="macro">eprintln!</span>(<span class="string">&quot;{}&quot;</span>, <span class="macro">anyhow!</span>(e));

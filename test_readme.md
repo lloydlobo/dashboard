@@ -1,5 +1,5 @@
-* [lloydlobo](https://github.com/lloydlobo/lloydlobo) — Lloyd Lobo's GitHub profile.
 * [dashboard](https://github.com/lloydlobo/dashboard) — Mega dashboard for all my projects
+* [lloydlobo](https://github.com/lloydlobo/lloydlobo) — Lloyd Lobo's GitHub profile.
 * [homely-recipes](https://github.com/lloydlobo/homely-recipes) — The site that recommends hand-picked home-made recipes prepa...
 * [wavefncollapse](https://github.com/lloydlobo/wavefncollapse) — wavefncollapse
 * [odin-rock-paper-scissors-docs](https://github.com/lloydlobo/odin-rock-paper-scissors-docs) — Documentation for the "Odin Rock Paper Scissors" Game
