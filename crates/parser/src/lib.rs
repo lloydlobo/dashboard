@@ -100,9 +100,10 @@ pub mod findrepl {
     use std::{
         self,
         fmt::Display,
-        fs::{self, File, OpenOptions},
+        fs,
         io::{Read, Write},
         path::Path,
+        sync::Arc,
     };
 
     use regex::Regex;
@@ -152,18 +153,8 @@ pub mod findrepl {
                 marker: (Marker::Start, Marker::End),
             }
         }
-
-        fn start_marker(&self) -> String {
-            format!("<!--START_SECTION:{}-->", self.section_name)
-        }
-
-        fn end_marker(&self) -> String {
-            format!("<!--END_SECTION:{}-->", self.section_name)
-        }
-
-        // pub(crate) fn arbitrary(g: &mut quickcheck::Gen) -> CommentBlock {
-        //     todo!()
-        // }
+        // fn start_marker(&self) -> String { format!("<!--START_SECTION:{}-->", self.section_name)
+        // } fn end_marker(&self) -> String { format!("<!--END_SECTION:{}-->", self.section_name) }
     }
 
     /// `replace` function first opens the file and reads its contents into a string buffer.
@@ -191,12 +182,14 @@ pub mod findrepl {
         let re_end = comment_block!(block.section_name, block.marker.1);
 
         // First copy the existing file into a buffer.
-        let mut f = File::open(path)?;
         let mut buf = String::new();
-        f.read_to_string(&mut buf)?;
+        fs::File::open(path)
+            .map_err(|e| ParserError::Io(Arc::new(e)))?
+            .read_to_string(&mut buf)
+            .map_err(|e| ParserError::Io(Arc::new(e)))?;
         log::debug!("Read and copied file:\n>> {}\n```\n{buf}\n```", path.display());
 
-        // Returns the start and end position of regex section
+        // Returns the start and end position of regex section.
         let (n_start, n_end) = get_block_positions(&buf, &re_start, &re_end)
             .map_err(|e| ParserError::RegexError(e.into()))?;
 
@@ -205,6 +198,7 @@ pub mod findrepl {
         let mut start = buf_arr[0..=n_start].to_owned();
         let mut end = buf_arr[n_end..].to_owned();
         let mut middle = text.lines().collect();
+        // PERF: This can be highly made effecient.
         // Join start, updated middle, and end with new line.
         start.append(&mut middle);
         end.append(&mut vec!["\n"]);
@@ -212,11 +206,16 @@ pub mod findrepl {
         let updated_content: String = start.join("\n");
 
         // Remove the original file `README.md`
-        fs::remove_file(path)?;
+        fs::remove_file(path).map_err(|e| ParserError::Io(Arc::new(e)))?;
 
         // Create a new file and write the updated content: Write all to new README.md.
-        let mut f = OpenOptions::new().create(true).write(true).open(path)?;
-        f.write_all(updated_content.as_bytes()).map_err(|e| ParserError::Io(e.into()))?;
+        fs::OpenOptions::new()
+            .create(true)
+            .write(true)
+            .open(path)
+            .map_err(|e| ParserError::Io(e.into()))?
+            .write_all(updated_content.as_bytes())
+            .map_err(|e| ParserError::Io(e.into()))?;
 
         Ok(())
     }
@@ -256,11 +255,11 @@ pub mod findrepl {
             .find(buf)
             .ok_or_else(|| regex::Error::Syntax("end marker not found".to_string()))
             .map_err(ParserError::RegexError)?;
-        assert!(start.start() < end.start());
+        debug_assert!(start.start() < end.start());
 
         let start = buf[..start.start()].lines().count();
         let end = buf[..end.start()].lines().count();
-        assert!(start < end);
+        debug_assert!(start < end);
 
         Ok((start, end))
     }
