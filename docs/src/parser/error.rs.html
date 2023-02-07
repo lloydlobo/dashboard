@@ -284,10 +284,10 @@
     Cyan,
 }
 
-<span class="doccomment">/// Converts a ParserError into a RegexError.
-</span><span class="kw">impl </span>Into&lt;RegexError&gt; <span class="kw">for </span>ParserError {
-    <span class="kw">fn </span>into(<span class="self">self</span>) -&gt; RegexError {
-        <span class="kw">match </span><span class="self">self </span>{
+<span class="doccomment">/// Converts a ParserError from a RegexError.
+</span><span class="kw">impl </span>From&lt;ParserError&gt; <span class="kw">for </span>RegexError {
+    <span class="kw">fn </span>from(val: ParserError) -&gt; <span class="self">Self </span>{
+        <span class="kw">match </span>val {
             ParserError::RegexError(error) =&gt; error,
             <span class="kw">_ </span>=&gt; RegexError::Syntax(String::from(<span class="string">&quot;ParserError&quot;</span>)),
         }
@@ -342,10 +342,10 @@
     </span><span class="kw">fn </span>should_log_logicbug() {
         <span class="kw">fn </span>parse_input() -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
             <span class="comment">// ...some parsing code
-            </span><span class="kw">return </span><span class="prelude-val">Err</span>(ParserError::LogicBug(<span class="string">&quot;error in logic&quot;</span>.to_owned()));
+            </span><span class="prelude-val">Err</span>(ParserError::LogicBug(<span class="string">&quot;error in logic&quot;</span>.to_owned()))
         }
         <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = parse_input() {
-            <span class="kw">let </span>err = <span class="macro">format!</span>(<span class="string">&quot;Parsing failed: {:?}&quot;</span>, e);
+            <span class="kw">let </span>err = <span class="macro">format!</span>(<span class="string">&quot;Parsing failed: {e:?}&quot;</span>);
             <span class="macro">assert_eq!</span>(err, <span class="string">r#&quot;Parsing failed: LogicBug(&quot;error in logic&quot;)&quot;#</span>);
         }
     }
@@ -354,10 +354,10 @@
     </span><span class="kw">fn </span>should_log_printererror() {
         <span class="kw">fn </span>parse_input() -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
             <span class="comment">// ...some parsing code
-            </span><span class="kw">return </span><span class="prelude-val">Err</span>(ParserError::PrinterError(PrinterError::InvalidColor(ErrorColor::Red)));
+            </span><span class="prelude-val">Err</span>(ParserError::PrinterError(PrinterError::InvalidColor(ErrorColor::Red)))
         }
         <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = parse_input() {
-            <span class="kw">let </span>err = <span class="macro">format!</span>(<span class="string">&quot;Parsing failed: {:?}&quot;</span>, e);
+            <span class="kw">let </span>err = <span class="macro">format!</span>(<span class="string">&quot;Parsing failed: {e:?}&quot;</span>);
             <span class="macro">assert_eq!</span>(err, <span class="string">r#&quot;Parsing failed: PrinterError(InvalidColor(Red))&quot;#</span>);
         }
     }

@@ -105,7 +105,6 @@ pub mod findrepl {
         path::Path,
     };
 
-    
     use regex::Regex;
 
     use crate::{comment_block, error::ParserError};
@@ -276,7 +275,6 @@ pub mod findrepl {
 
         use pretty_assertions::assert_eq;
         use quickcheck::{quickcheck, Arbitrary, Gen};
-        
         use rand::Rng;
         use tempfile::tempdir;
 
