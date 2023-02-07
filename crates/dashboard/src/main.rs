@@ -130,7 +130,7 @@ pub mod app {
     use std::sync::Arc;
 
     use serde::{Deserialize, Serialize};
-    use thiserror::Error;
+    
 
     use crate::{config, db::DB};
 
