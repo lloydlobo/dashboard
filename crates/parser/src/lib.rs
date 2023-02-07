@@ -14,6 +14,7 @@ mod macros;
 
 pub use crate::{error::*, findrepl::*};
 
+#[allow(dead_code)]
 mod printer {
     use std::io::Write;
 
@@ -224,7 +225,7 @@ pub mod findrepl {
     ///
     /// ```rust
     /// use parser::*;
-    /// fn main() {
+    /// fn try_main() {
     ///     let re_start = "<!--START_SECTION:tag_1-->";
     ///     let re_end = "<!--END_SECTION:tag_1-->";
     ///
