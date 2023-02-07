@@ -107,7 +107,7 @@ pub mod findrepl {
         sync::Arc,
     };
 
-    use regex::Regex;
+    use regex::{Error::Syntax, Regex};
 
     use crate::{comment_block, error::ParserError};
 
@@ -179,8 +179,12 @@ pub mod findrepl {
     // PERF: Create regex to find all `section_names` from copied `README.md`.
     pub fn replace(text: &str, block: CommentBlock, path: &Path) -> super::Result<()> {
         // Find the start and end of sections surrounded with comment block.
-        let re_start = comment_block!(block.section_name, block.marker.0);
-        let re_end = comment_block!(block.section_name, block.marker.1);
+        // let re_start = comment_block!(block.section_name, block.marker.0);
+        // let re_end = comment_block!(block.section_name, block.marker.1);
+        let (re_start, re_end) = rayon::join(
+            || comment_block!(block.section_name, block.marker.0),
+            || comment_block!(block.section_name, block.marker.1),
+        );
 
         // First copy the existing file into a buffer.
         let mut buf = String::new();
@@ -245,23 +249,26 @@ pub mod findrepl {
         re_start: &str,
         re_end: &str,
     ) -> super::Result<(usize, usize)> {
-        let start = Regex::new(re_start).map_err(ParserError::RegexError)?;
-        let end = Regex::new(re_end).map_err(ParserError::RegexError)?;
-
-        let start = start
-            .find(buf)
-            .ok_or_else(|| regex::Error::Syntax("start marker not found".to_string()))
-            .map_err(ParserError::RegexError)?;
-        let end = end
-            .find(buf)
-            .ok_or_else(|| regex::Error::Syntax("end marker not found".to_string()))
-            .map_err(ParserError::RegexError)?;
-        debug_assert!(start.start() < end.start());
-
-        let start = buf[..start.start()].lines().count();
-        let end = buf[..end.start()].lines().count();
+        let (start, end) = rayon::join(
+            || Regex::new(re_start).map_err(ParserError::RegexError),
+            || Regex::new(re_end).map_err(ParserError::RegexError),
+        );
+        let (start, end) = (start?, end?);
+        let (start, end) = rayon::join(|| start.find(buf), || end.find(buf));
+        let (start, end) = (
+            start.ok_or_else(|| Syntax("start marker not found".to_string()))?,
+            end.ok_or_else(|| Syntax("end marker not found".to_string()))?,
+        );
+        let ((start, end), _) = rayon::join(
+            || {
+                rayon::join(
+                    || buf[..start.start()].lines().count(),
+                    || buf[..end.start()].lines().count(),
+                )
+            },
+            || assert!(start.start() < end.start()),
+        );
         debug_assert!(start < end);
-
         Ok((start, end))
     }
 
