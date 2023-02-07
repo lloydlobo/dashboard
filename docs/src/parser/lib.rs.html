@@ -433,7 +433,8 @@
 
 <span class="kw">pub use crate</span>::{error::<span class="kw-2">*</span>, findrepl::<span class="kw-2">*</span>};
 
-<span class="kw">mod </span>printer {
+<span class="attr">#[allow(dead_code)]
+</span><span class="kw">mod </span>printer {
     <span class="kw">use </span>std::io::Write;
 
     <span class="kw">use </span>atty::Stream;
@@ -519,9 +520,10 @@
     </span><span class="kw">use </span>std::{
         <span class="self">self</span>,
         fmt::Display,
-        fs::{<span class="self">self</span>, File, OpenOptions},
+        fs,
         io::{Read, Write},
         path::Path,
+        sync::Arc,
     };
 
     <span class="kw">use </span>regex::Regex;
@@ -571,18 +573,8 @@
                 marker: (Marker::Start, Marker::End),
             }
         }
-
-        <span class="kw">fn </span>start_marker(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
-            <span class="macro">format!</span>(<span class="string">&quot;&lt;!--START_SECTION:{}--&gt;&quot;</span>, <span class="self">self</span>.section_name)
-        }
-
-        <span class="kw">fn </span>end_marker(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
-            <span class="macro">format!</span>(<span class="string">&quot;&lt;!--END_SECTION:{}--&gt;&quot;</span>, <span class="self">self</span>.section_name)
-        }
-
-        <span class="comment">// pub(crate) fn arbitrary(g: &amp;mut quickcheck::Gen) -&gt; CommentBlock {
-        //     todo!()
-        // }
+        <span class="comment">// fn start_marker(&amp;self) -&gt; String { format!(&quot;&lt;!--START_SECTION:{}--&gt;&quot;, self.section_name)
+        // } fn end_marker(&amp;self) -&gt; String { format!(&quot;&lt;!--END_SECTION:{}--&gt;&quot;, self.section_name) }
     </span>}
 
     <span class="doccomment">/// `replace` function first opens the file and reads its contents into a string buffer.
@@ -610,12 +602,14 @@
         <span class="kw">let </span>re_end = <span class="macro">comment_block!</span>(block.section_name, block.marker.<span class="number">1</span>);
 
         <span class="comment">// First copy the existing file into a buffer.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>f = File::open(path)<span class="question-mark">?</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>buf = String::new();
-        f.read_to_string(<span class="kw-2">&amp;mut </span>buf)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span><span class="kw-2">mut </span>buf = String::new();
+        fs::File::open(path)
+            .map_err(|e| ParserError::Io(Arc::new(e)))<span class="question-mark">?
+            </span>.read_to_string(<span class="kw-2">&amp;mut </span>buf)
+            .map_err(|e| ParserError::Io(Arc::new(e)))<span class="question-mark">?</span>;
         <span class="macro">log::debug!</span>(<span class="string">&quot;Read and copied file:\n&gt;&gt; {}\n```\n{buf}\n```&quot;</span>, path.display());
 
-        <span class="comment">// Returns the start and end position of regex section
+        <span class="comment">// Returns the start and end position of regex section.
         </span><span class="kw">let </span>(n_start, n_end) = get_block_positions(<span class="kw-2">&amp;</span>buf, <span class="kw-2">&amp;</span>re_start, <span class="kw-2">&amp;</span>re_end)
             .map_err(|e| ParserError::RegexError(e.into()))<span class="question-mark">?</span>;
 
@@ -624,18 +618,24 @@
         <span class="kw">let </span><span class="kw-2">mut </span>start = buf_arr[<span class="number">0</span>..=n_start].to_owned();
         <span class="kw">let </span><span class="kw-2">mut </span>end = buf_arr[n_end..].to_owned();
         <span class="kw">let </span><span class="kw-2">mut </span>middle = text.lines().collect();
-        <span class="comment">// Join start, updated middle, and end with new line.
+        <span class="comment">// PERF: This can be highly made effecient.
+        // Join start, updated middle, and end with new line.
         </span>start.append(<span class="kw-2">&amp;mut </span>middle);
         end.append(<span class="kw-2">&amp;mut </span><span class="macro">vec!</span>[<span class="string">&quot;\n&quot;</span>]);
         start.append(<span class="kw-2">&amp;mut </span>end);
         <span class="kw">let </span>updated_content: String = start.join(<span class="string">&quot;\n&quot;</span>);
 
         <span class="comment">// Remove the original file `README.md`
-        </span>fs::remove_file(path)<span class="question-mark">?</span>;
+        </span>fs::remove_file(path).map_err(|e| ParserError::Io(Arc::new(e)))<span class="question-mark">?</span>;
 
         <span class="comment">// Create a new file and write the updated content: Write all to new README.md.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>f = OpenOptions::new().create(<span class="bool-val">true</span>).write(<span class="bool-val">true</span>).open(path)<span class="question-mark">?</span>;
-        f.write_all(updated_content.as_bytes()).map_err(|e| ParserError::Io(e.into()))<span class="question-mark">?</span>;
+        </span>fs::OpenOptions::new()
+            .create(<span class="bool-val">true</span>)
+            .write(<span class="bool-val">true</span>)
+            .open(path)
+            .map_err(|e| ParserError::Io(e.into()))<span class="question-mark">?
+            </span>.write_all(updated_content.as_bytes())
+            .map_err(|e| ParserError::Io(e.into()))<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(())
     }
@@ -644,7 +644,7 @@
     ///
     /// ```rust
     /// use parser::*;
-    /// fn main() {
+    /// fn try_main() {
     ///     let re_start = &quot;&lt;!--START_SECTION:tag_1--&gt;&quot;;
     ///     let re_end = &quot;&lt;!--END_SECTION:tag_1--&gt;&quot;;
     ///
@@ -675,11 +675,11 @@
             .find(buf)
             .ok_or_else(|| regex::Error::Syntax(<span class="string">&quot;end marker not found&quot;</span>.to_string()))
             .map_err(ParserError::RegexError)<span class="question-mark">?</span>;
-        <span class="macro">assert!</span>(start.start() &lt; end.start());
+        <span class="macro">debug_assert!</span>(start.start() &lt; end.start());
 
         <span class="kw">let </span>start = buf[..start.start()].lines().count();
         <span class="kw">let </span>end = buf[..end.start()].lines().count();
-        <span class="macro">assert!</span>(start &lt; end);
+        <span class="macro">debug_assert!</span>(start &lt; end);
 
         <span class="prelude-val">Ok</span>((start, end))
     }

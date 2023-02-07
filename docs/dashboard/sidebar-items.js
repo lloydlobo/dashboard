@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["main",""],["try_main",""]],"macro":[["comment_block",""]],"mod":[["app","`app` module contains `App` which contains prelude for all modules in this crate."],["config",""],["db",""],["gh",""],["markdown",""]]};
+window.SIDEBAR_ITEMS = {"fn":[["main",""],["try_main",""]],"mod":[["app","`app` module contains `App` which contains prelude for all modules in this crate."],["config",""],["db",""],["gh",""]]};

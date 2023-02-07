@@ -375,6 +375,27 @@
 <a href="#375" id="375">375</a>
 <a href="#376" id="376">376</a>
 <a href="#377" id="377">377</a>
+<a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
+<a href="#380" id="380">380</a>
+<a href="#381" id="381">381</a>
+<a href="#382" id="382">382</a>
+<a href="#383" id="383">383</a>
+<a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a>
+<a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
+<a href="#397" id="397">397</a>
+<a href="#398" id="398">398</a>
 </pre><pre class="rust"><code><span class="doccomment">//! # dashboard
 //!
 //! `dashboard` is list of &quot;GitHub Actions build status&quot; of all the repos under my account, for my
@@ -412,9 +433,7 @@
 //! * `url` - Repository URL
 //! * `description` - Description of the repository
 
-</span><span class="kw">mod </span>markdown;
-
-<span class="kw">use </span>std::{
+</span><span class="kw">use </span>std::{
     fs::{File, OpenOptions},
     path::Path,
     sync::Arc,
@@ -489,7 +508,7 @@
         .repo_list
         .ok_or_else(|| AppError::LogicBug(<span class="macro">anyhow!</span>(<span class="string">&quot;Failed to find repo list&quot;</span>).to_string()))<span class="question-mark">?
         </span>.iter()
-        .map(markdown::fmt_markdown_list_item)
+        .map(app::fmt_markdown_list_item)
         .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
         .join(<span class="string">&quot;\n&quot;</span>);
     <span class="kw">let </span>block = CommentBlock::new(<span class="string">&quot;tag_1&quot;</span>.to_string());
@@ -506,7 +525,7 @@
 
     <span class="kw">use </span>serde::{Deserialize, Serialize};
 
-    <span class="kw">use crate</span>::{config, db::DB};
+    <span class="kw">use crate</span>::{config, db::DB, gh::GitRepoListItem};
 
     <span class="attr">#[allow(dead_code)]
     </span><span class="doccomment">/// Name of `dashboard` `package`in `/dashboard/Cargo.toml`.
@@ -533,10 +552,33 @@
         <span class="string">&quot;url&quot;</span>,
     ];
 
+    <span class="doccomment">/// Word count limit for description.
+    </span><span class="kw">pub const </span>DESC_WC: usize = <span class="number">60</span>;
+
     <span class="attr">#[derive(Clone, Debug, Deserialize, Serialize)]
     </span><span class="kw">pub struct </span>App {
         <span class="kw">pub</span>(<span class="kw">crate</span>) config: config::Config,
         <span class="kw">pub</span>(<span class="kw">crate</span>) db: DB,
+    }
+
+    <span class="comment">// #[macro_export]
+    // macro_rules! comment_block {
+    //     ($section_name:expr, $marker:expr) =&gt; {
+    //         format!(&quot;&lt;!--{}_SECTION:{}--&gt;&quot;, $marker, $section_name)
+    //     };
+    // }
+
+    </span><span class="doccomment">/// Create and format a new markdown list item with repo name, url and its description.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>fmt_markdown_list_item(i: <span class="kw-2">&amp;</span>GitRepoListItem) -&gt; String {
+        <span class="kw">match </span>i.description.is_empty() {
+            <span class="bool-val">true </span>=&gt; <span class="macro">format!</span>(<span class="string">&quot;* [{}]({})&quot;</span>, i.name, i.url),
+            <span class="bool-val">false </span>=&gt; <span class="kw">match </span>i.description.len() &gt; DESC_WC {
+                <span class="bool-val">true </span>=&gt; {
+                    <span class="macro">format!</span>(<span class="string">&quot;* [{}]({}) — {}...&quot;</span>, i.name, i.url, i.description.split_at(DESC_WC).<span class="number">0</span>)
+                }
+                <span class="bool-val">false </span>=&gt; <span class="macro">format!</span>(<span class="string">&quot;* [{}]({}) — {}&quot;</span>, i.name, i.url, i.description),
+            },
+        }
     }
 
     <span class="doccomment">/// `Result&lt;T, E&gt;`
