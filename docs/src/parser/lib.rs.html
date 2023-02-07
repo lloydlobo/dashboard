@@ -333,6 +333,92 @@
 <a href="#333" id="333">333</a>
 <a href="#334" id="334">334</a>
 <a href="#335" id="335">335</a>
+<a href="#336" id="336">336</a>
+<a href="#337" id="337">337</a>
+<a href="#338" id="338">338</a>
+<a href="#339" id="339">339</a>
+<a href="#340" id="340">340</a>
+<a href="#341" id="341">341</a>
+<a href="#342" id="342">342</a>
+<a href="#343" id="343">343</a>
+<a href="#344" id="344">344</a>
+<a href="#345" id="345">345</a>
+<a href="#346" id="346">346</a>
+<a href="#347" id="347">347</a>
+<a href="#348" id="348">348</a>
+<a href="#349" id="349">349</a>
+<a href="#350" id="350">350</a>
+<a href="#351" id="351">351</a>
+<a href="#352" id="352">352</a>
+<a href="#353" id="353">353</a>
+<a href="#354" id="354">354</a>
+<a href="#355" id="355">355</a>
+<a href="#356" id="356">356</a>
+<a href="#357" id="357">357</a>
+<a href="#358" id="358">358</a>
+<a href="#359" id="359">359</a>
+<a href="#360" id="360">360</a>
+<a href="#361" id="361">361</a>
+<a href="#362" id="362">362</a>
+<a href="#363" id="363">363</a>
+<a href="#364" id="364">364</a>
+<a href="#365" id="365">365</a>
+<a href="#366" id="366">366</a>
+<a href="#367" id="367">367</a>
+<a href="#368" id="368">368</a>
+<a href="#369" id="369">369</a>
+<a href="#370" id="370">370</a>
+<a href="#371" id="371">371</a>
+<a href="#372" id="372">372</a>
+<a href="#373" id="373">373</a>
+<a href="#374" id="374">374</a>
+<a href="#375" id="375">375</a>
+<a href="#376" id="376">376</a>
+<a href="#377" id="377">377</a>
+<a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
+<a href="#380" id="380">380</a>
+<a href="#381" id="381">381</a>
+<a href="#382" id="382">382</a>
+<a href="#383" id="383">383</a>
+<a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a>
+<a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
+<a href="#397" id="397">397</a>
+<a href="#398" id="398">398</a>
+<a href="#399" id="399">399</a>
+<a href="#400" id="400">400</a>
+<a href="#401" id="401">401</a>
+<a href="#402" id="402">402</a>
+<a href="#403" id="403">403</a>
+<a href="#404" id="404">404</a>
+<a href="#405" id="405">405</a>
+<a href="#406" id="406">406</a>
+<a href="#407" id="407">407</a>
+<a href="#408" id="408">408</a>
+<a href="#409" id="409">409</a>
+<a href="#410" id="410">410</a>
+<a href="#411" id="411">411</a>
+<a href="#412" id="412">412</a>
+<a href="#413" id="413">413</a>
+<a href="#414" id="414">414</a>
+<a href="#415" id="415">415</a>
+<a href="#416" id="416">416</a>
+<a href="#417" id="417">417</a>
+<a href="#418" id="418">418</a>
+<a href="#419" id="419">419</a>
+<a href="#420" id="420">420</a>
+<a href="#421" id="421">421</a>
 </pre><pre class="rust"><code><span class="doccomment">//! # parser
 //!
 //! ## [`findrepl`]
@@ -342,25 +428,47 @@
 //! finds the start and end markers, removes the content between them, and inserts the updated text.
 //! The updated content is then written back to the file and the function returns a Result.
 
-</span><span class="kw">use </span>std::{path::Path, time::Instant};
+</span><span class="attr">#![deny(missing_debug_implementations, missing_docs)]
 
-<span class="kw">use </span>anyhow::anyhow;
-<span class="kw">use </span>findrepl::CommentBlock;
-<span class="kw">use </span>log::{
-    info,
-    LevelFilter::{Debug, Info},
-};
-<span class="kw">use </span>pretty_env_logger::env_logger::builder;
+</span><span class="kw">mod </span>error;
+<span class="kw">mod </span>macros;
 
-<span class="doccomment">/// `Result&lt;T, E&gt;` is an alias for the Result type from the anyhow crate.
-/// It is used as the return type for functions that may fail and return an error.
-</span><span class="kw">pub type </span><span class="prelude-ty">Result</span>&lt;T, E&gt; = anyhow::Result&lt;T, E&gt;;
+<span class="kw">pub use crate</span>::{error::<span class="kw-2">*</span>, findrepl::<span class="kw-2">*</span>};
 
-<span class="doccomment">/// `Error` is an alias for the Error type from the anyhow crate.
-/// It is used as the error type for the Result type.
-</span><span class="kw">pub type </span>Error = anyhow::Error;
+<span class="kw">mod </span>printer {
+    <span class="kw">use </span>std::io::Write;
 
-<span class="kw">pub use </span>findrepl::<span class="kw-2">*</span>;
+    <span class="kw">use </span>atty::Stream;
+    <span class="kw">use </span>termcolor::{BufferWriter, Color, ColorChoice, ColorSpec, WriteColor};
+
+    <span class="kw">use </span><span class="kw">crate</span>::error::ParserError;
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new() -&gt; <span class="prelude-ty">Result</span>&lt;(), ParserError&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>bufwtr = BufferWriter::stderr(ColorChoice::Always);
+        <span class="kw">let </span><span class="kw-2">mut </span>buffer = bufwtr.buffer();
+        buffer.set_color(ColorSpec::new().set_fg(<span class="prelude-val">Some</span>(Color::Green)))<span class="question-mark">?</span>;
+        <span class="macro">writeln!</span>(<span class="kw-2">&amp;mut </span>buffer, <span class="string">&quot;green text!&quot;</span>)<span class="question-mark">?</span>;
+        bufwtr.print(<span class="kw-2">&amp;</span>buffer)<span class="question-mark">?</span>;
+
+        <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_stdout_tty(stream: Stream) -&gt; <span class="prelude-ty">Result</span>&lt;(), ParserError&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>bufwtr = BufferWriter::stderr(ColorChoice::Always);
+        <span class="kw">let </span><span class="kw-2">mut </span>buffer = bufwtr.buffer();
+        <span class="kw">if </span>atty::is(stream) {
+            buffer.set_color(ColorSpec::new().set_fg(<span class="prelude-val">Some</span>(Color::Green)))<span class="question-mark">?</span>;
+            <span class="macro">writeln!</span>(<span class="kw-2">&amp;mut </span>buffer, <span class="string">&quot;I&#39;m a terminal&quot;</span>)<span class="question-mark">?</span>;
+            bufwtr.print(<span class="kw-2">&amp;</span>buffer)<span class="question-mark">?</span>;
+        } <span class="kw">else </span>{
+            buffer.set_color(ColorSpec::new().set_fg(<span class="prelude-val">Some</span>(Color::Red)))<span class="question-mark">?</span>;
+            <span class="macro">writeln!</span>(<span class="kw-2">&amp;mut </span>buffer, <span class="string">&quot;I&#39;m not a terminal&quot;</span>)<span class="question-mark">?</span>;
+            bufwtr.print(<span class="kw-2">&amp;</span>buffer)<span class="question-mark">?</span>;
+        }
+
+        <span class="prelude-val">Ok</span>(())
+    }
+}
 
 <span class="kw">pub mod </span>findrepl {
     <span class="doccomment">//! # findrepl
@@ -389,19 +497,6 @@
     //! * [bar](https://github.com/username/bar) — Lorem ipsum dolor sit amet, qui minim labore
     //!   adipisicing minim sint cillum sint consectetur cupidatat. ...
     //! &lt;!--END_SECTION:tag_1--&gt;
-    //! ```
-    //!
-    //! ```rust
-    //! fn main() {
-    //!     let path = Path::new(&quot;example.txt&quot;);
-    //!     let text = &quot;* [new_lorem](https://github.com/new_username/new_username) — new_username&#39;s GitHub profile.\n\
-    //!                 * [new_foobar](https://github.com/new_username/new_foobar)\n\
-    //!                 * [new_bar](https://github.com/new_username/new_bar) — Lorem ipsum dolor sit amet, qui minim labore\n\
-    //!                   adipisicing minim sint cillum sint consectetur cupidatat.&quot;;
-    //!     if let Err(error) = try_lib_main(text, &amp;path) {
-    //!         println!(&quot;Error: {}&quot;, error);
-    //!     }
-    //! }
     //! ```
     //!
     //! The function try_lib_main will then update the file by replacing the content between the
@@ -434,71 +529,18 @@
     <span class="kw">use </span>anyhow::anyhow;
     <span class="kw">use </span>regex::Regex;
 
-    <span class="kw">use super</span>::{Error, <span class="prelude-ty">Result</span>};
-
-    <span class="doccomment">/// The macro `comment_block` generates the start and end marker strings of a comment section in
-    /// a Markdown file.
-    ///
-    /// Generates a string in the format of `&lt;!--MARKER_SECTION:SECTION_NAME--&gt;`
-    ///
-    /// The macro takes in two arguments: `$section_name` and `$marker`.
-    /// The first argument, `$section_name`, specifies the name of the comment section.
-    /// The second argument, `$marker`, specifies whether it&#39;s the start or end marker of the
-    /// comment section.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use comment_block::comment_block;
-    /// let section_name = &quot;tag_1&quot;;
-    /// let marker = &quot;START&quot;;
-    /// let result = comment_block!(section_name, marker);
-    /// assert_eq!(result, &quot;&lt;!--START_SECTION:tag_1--&gt;&quot;);
-    /// ```
-    ///
-    /// ```rust
-    /// use comment_block::comment_block;
-    /// let start_marker = comment_block!(&quot;example&quot;, &quot;START&quot;);
-    /// let end_marker = comment_block!(&quot;example&quot;, &quot;END&quot;);
-    /// assert_eq!(start_marker, &quot;&lt;!--START_SECTION:example--&gt;&quot;);
-    /// assert_eq!(end_marker, &quot;&lt;!--END_SECTION:example--&gt;&quot;);
-    /// ```
-    ///
-    /// # Internal Notes for Developers
-    ///
-    /// This macro defines the start and end markers of a comment section in a Markdown file where:
-    /// * The start marker is defined by the string `&lt;!--START_SECTION:` concatenated with the
-    ///   `$section_name` argument.
-    /// * The end marker is defined by the string `&lt;!--END_SECTION:` concatenated with the
-    ///   `$section_name` argument.
-    </span><span class="attr">#[macro_export]
-    </span><span class="macro">macro_rules! </span>comment_block {
-        (<span class="macro-nonterminal">$section_name</span>:expr, <span class="macro-nonterminal">$marker</span>:expr) =&gt; {
-            <span class="macro">format!</span>(<span class="string">&quot;&lt;!--{}_SECTION:{}--&gt;&quot;</span>, <span class="macro-nonterminal">$marker</span>, <span class="macro-nonterminal">$section_name</span>)
-        };
-    }
-
-    <span class="comment">// Certainly! You can make the SECTION parameter dynamic by changing the macro definition to
-    // accept an additional argument for the section name. This way, you can pass in the section
-    // name at runtime, instead of having it hardcoded in the macro definition. Here&#39;s an updated
-    // version of the macro: In this updated version, the macro accepts three arguments:
-    // $section_name, $marker, and $section. The $section argument is used to dynamically specify
-    // the section name in the generated string. The $section_name and $marker arguments work just
-    // like in the previous version.
-    </span><span class="attr">#[macro_export]
-    </span><span class="macro">macro_rules! </span>comment_block_dyn {
-        (<span class="macro-nonterminal">$section_name</span>:expr, <span class="macro-nonterminal">$marker</span>:expr, <span class="macro-nonterminal">$section</span>:expr) =&gt; {
-            <span class="macro">format!</span>(<span class="string">&quot;&lt;!--{}_{}:{}--&gt;&quot;</span>, <span class="macro-nonterminal">$marker</span>, <span class="macro-nonterminal">$section</span>, <span class="macro-nonterminal">$section_name</span>)
-        };
-    }
+    <span class="kw">use crate</span>::{comment_block, error::ParserError, printer};
 
     <span class="doccomment">/// `Marker` is an enumeration of marker values, `Start` and `End`.
-    /// These markers are used to indicate the start and end of a comment block in some
-    /// implementation.
-    </span><span class="attr">#[derive(Debug)]
+    /// These markers are used to indicate the start and end of a [`CommentBlock`] comment block in
+    /// some implementation.
+    </span><span class="attr">#[derive(Debug, Default, Clone, PartialEq)]
     </span><span class="kw">pub enum </span>Marker {
-        End,
-        Start,
+        <span class="doccomment">/// The end of a comment block section.
+        </span><span class="attr">#[default]
+        </span>End,
+        <span class="doccomment">/// The start of a comment block section.
+        </span>Start,
     }
 
     <span class="kw">impl </span>Display <span class="kw">for </span>Marker {
@@ -514,10 +556,10 @@
     /// It has two fields: `section_name`, which is a `String` representing the name of the section,
     /// and `marker`, which is a tuple of two Marker values, indicating the start and end
     /// markers of the comment block.
-    </span><span class="attr">#[derive(Debug)]
+    </span><span class="attr">#[derive(Debug, Default, Clone, PartialEq)]
     </span><span class="kw">pub struct </span>CommentBlock {
-        <span class="kw">pub </span>name: String,
-        <span class="kw">pub </span>marker: (Marker, Marker),
+        section_name: String,
+        marker: (Marker, Marker),
     }
 
     <span class="doccomment">/// `impl CommentBlock` is an implementation block for the CommentBlock struct.
@@ -525,147 +567,277 @@
     /// It provides a constructor new for creating new CommentBlock values, and two methods:
     /// `start_marker` and `end_marker`, which return the start and end markers as `String` values.
     </span><span class="kw">impl </span>CommentBlock {
-        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(section_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="self">Self </span>{
-            <span class="self">Self </span>{ name: section_name.to_string(), marker: (Marker::Start, Marker::End) }
+        <span class="doccomment">/// Creates a new [`CommentBlock`].
+        </span><span class="kw">pub fn </span>new(section_name: String) -&gt; <span class="self">Self </span>{
+            <span class="self">Self </span>{
+                section_name: section_name.trim().to_string(),
+                marker: (Marker::Start, Marker::End),
+            }
         }
 
         <span class="kw">fn </span>start_marker(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
-            <span class="macro">format!</span>(<span class="string">&quot;&lt;!--START_SECTION:{}--&gt;&quot;</span>, <span class="self">self</span>.name)
+            <span class="macro">format!</span>(<span class="string">&quot;&lt;!--START_SECTION:{}--&gt;&quot;</span>, <span class="self">self</span>.section_name)
         }
 
         <span class="kw">fn </span>end_marker(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
-            <span class="macro">format!</span>(<span class="string">&quot;&lt;!--END_SECTION:{}--&gt;&quot;</span>, <span class="self">self</span>.name)
+            <span class="macro">format!</span>(<span class="string">&quot;&lt;!--END_SECTION:{}--&gt;&quot;</span>, <span class="self">self</span>.section_name)
         }
-    }
 
-    <span class="doccomment">/// `try_main`
-    ///
-    /// First copy the existing file into a buffer.
-    /// Then find the start and end of sections.
-    /// Mutate and replace the content btw them with TO_UPDATE_WITH.
-    /// Write all to file.
-    </span><span class="comment">//
-    // PERF: Create regex to find all `section_names` from copied `README.md`.
-    //
-    // The try_lib_main function first opens the file and reads its contents into a string buffer.
-    // It then creates a CommentBlock struct with a specified section name and generates the start
+        <span class="comment">// pub(crate) fn arbitrary(g: &amp;mut quickcheck::Gen) -&gt; CommentBlock {
+        //     todo!()
+        // }
+    </span>}
+
+    <span class="doccomment">/// `replace` function first opens the file and reads its contents into a string buffer.
+    </span><span class="comment">// It then creates a CommentBlock struct with a specified section name and generates the start
     // and end markers from it. The function then finds the positions of the start and end
     // markers in the buffer using the position method. It removes the content between the
     // markers using the clear method, inserts the updated content using the splice method, and
     // updates the file with the new content.
-    </span><span class="doccomment">/// # Panics
-    ///
-    /// Panics if:
+    </span><span class="doccomment">///
+    /// # Panics
     ///
     /// * File at `path` doesn&#39;t exist.
     /// * start or end marker are not found&#39;.
-    </span><span class="kw">pub fn </span>replace(text: <span class="kw-2">&amp;</span>str, block: CommentBlock, path: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+    /// * `path` being passed to the replace function. - Instead of passing input.path which is a
+    ///   Path object, you should pass &amp;path, which is the path to the tempfile as a string slice.
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error if it panics.
+    </span><span class="comment">//
+    // PERF: Create regex to find all `section_names` from copied `README.md`.
+    </span><span class="kw">pub fn </span>replace(text: <span class="kw-2">&amp;</span>str, block: CommentBlock, path: <span class="kw-2">&amp;</span>Path) -&gt; <span class="kw">super</span>::Result&lt;()&gt; {
         <span class="comment">// Find the start and end of sections surrounded with comment block.
-        </span><span class="kw">let </span>re_start = <span class="macro">comment_block!</span>(block.name, block.marker.<span class="number">0</span>);
-        <span class="kw">let </span>re_end = <span class="macro">comment_block!</span>(block.name, block.marker.<span class="number">1</span>);
+        </span><span class="kw">let </span>re_start = <span class="macro">comment_block!</span>(block.section_name, block.marker.<span class="number">0</span>);
+        <span class="kw">let </span>re_end = <span class="macro">comment_block!</span>(block.section_name, block.marker.<span class="number">1</span>);
 
         <span class="comment">// First copy the existing file into a buffer.
         </span><span class="kw">let </span><span class="kw-2">mut </span>f = File::open(path)<span class="question-mark">?</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>buf = String::new();
         f.read_to_string(<span class="kw-2">&amp;mut </span>buf)<span class="question-mark">?</span>;
-        <span class="macro">log::info!</span>(<span class="string">&quot;Read and copied file:\n&gt;&gt; {}\n```\n{buf}\n```&quot;</span>, path.display());
+        <span class="macro">log::debug!</span>(<span class="string">&quot;Read and copied file:\n&gt;&gt; {}\n```\n{buf}\n```&quot;</span>, path.display());
 
         <span class="comment">// Returns the start and end position of regex section
-        </span><span class="kw">let </span>(n_start, n_end) = get_section_positions(<span class="kw-2">&amp;</span>buf, <span class="kw-2">&amp;</span>re_start, <span class="kw-2">&amp;</span>re_end)<span class="question-mark">?</span>;
-        <span class="comment">// let (n_start, n_end) = (get_pos(&amp;buf, &amp;re_start)?, get_pos(&amp;buf, &amp;re_end)?);
+        </span><span class="kw">let </span>(n_start, n_end) = get_block_positions(<span class="kw-2">&amp;</span>buf, <span class="kw-2">&amp;</span>re_start, <span class="kw-2">&amp;</span>re_end)
+            .map_err(|e| ParserError::RegexError(e.into()))<span class="question-mark">?</span>;
 
-        // Split content into lines and update the section
+        <span class="comment">// Split content into lines and update the section
         </span><span class="kw">let </span>buf_arr: Vec&lt;<span class="kw-2">&amp;</span>str&gt; = buf.lines().collect();
         <span class="kw">let </span><span class="kw-2">mut </span>start = buf_arr[<span class="number">0</span>..=n_start].to_owned();
         <span class="kw">let </span><span class="kw-2">mut </span>end = buf_arr[n_end..].to_owned();
         <span class="kw">let </span><span class="kw-2">mut </span>middle = text.lines().collect();
-        start.append(<span class="kw-2">&amp;mut </span>middle);
-        start.append(<span class="kw-2">&amp;mut </span>end);
-
         <span class="comment">// Join start, updated middle, and end with new line.
-        </span><span class="kw">let </span>updated_content: String = start.join(<span class="string">&quot;\n&quot;</span>);
+        </span>start.append(<span class="kw-2">&amp;mut </span>middle);
+        end.append(<span class="kw-2">&amp;mut </span><span class="macro">vec!</span>[<span class="string">&quot;\n&quot;</span>]);
+        start.append(<span class="kw-2">&amp;mut </span>end);
+        <span class="kw">let </span>updated_content: String = start.join(<span class="string">&quot;\n&quot;</span>);
 
         <span class="comment">// Remove the original file `README.md`
         </span>fs::remove_file(path)<span class="question-mark">?</span>;
 
         <span class="comment">// Create a new file and write the updated content: Write all to new README.md.
         </span><span class="kw">let </span><span class="kw-2">mut </span>f = OpenOptions::new().create(<span class="bool-val">true</span>).write(<span class="bool-val">true</span>).open(path)<span class="question-mark">?</span>;
-        f.write_all(updated_content.as_bytes())<span class="question-mark">?</span>;
+        f.write_all(updated_content.as_bytes()).map_err(|e| ParserError::Io(e.into()))<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Returns the line positions of start and end markers for the given section in the buffer.
-    </span><span class="kw">fn </span>get_section_positions(
+    ///
+    /// ```rust
+    /// use parser::*;
+    /// fn main() {
+    ///     let re_start = &quot;&lt;!--START_SECTION:tag_1--&gt;&quot;;
+    ///     let re_end = &quot;&lt;!--END_SECTION:tag_1--&gt;&quot;;
+    ///
+    ///     let buf: &amp;str = r#&quot;&lt;!--START_SECTION:tag_1--&gt;
+    /// * [lorem](https://github.com/username/username) — username&#39;s GitHub profile.
+    /// * [foobar](https://github.com/username/foobar)
+    /// * [bar](https://github.com/username/bar) — Lorem ipsum dolor sit amet, qui minim labore
+    ///   adipisicing minim sint cillum sint consectetur cupidatat. ...
+    /// &lt;!--END_SECTION:tag_1--&gt;&quot;#;
+    ///
+    ///     let (start, end) = get_block_positions(buf, &amp;re_start, &amp;re_end).unwrap();
+    ///     assert_eq!((start, end), (0, 5));
+    /// }
+    /// ```
+    </span><span class="kw">pub fn </span>get_block_positions(
         buf: <span class="kw-2">&amp;</span>str,
         re_start: <span class="kw-2">&amp;</span>str,
         re_end: <span class="kw-2">&amp;</span>str,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(usize, usize), Error&gt; {
-        <span class="kw">let </span>start_re = Regex::new(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">r&quot;{}&quot;</span>, re_start))<span class="question-mark">?</span>;
-        <span class="kw">let </span>end_re = Regex::new(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">r&quot;{}&quot;</span>, re_end))<span class="question-mark">?</span>;
+    ) -&gt; <span class="kw">super</span>::Result&lt;(usize, usize)&gt; {
+        <span class="kw">let </span>start = Regex::new(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">r&quot;{}&quot;</span>, re_start)).map_err(ParserError::RegexError)<span class="question-mark">?</span>;
+        <span class="kw">let </span>end = Regex::new(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">r&quot;{}&quot;</span>, re_end)).map_err(ParserError::RegexError)<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>start = start_re.find(buf).ok_or_else(|| <span class="macro">anyhow!</span>(<span class="string">&quot;start marker not found&quot;</span>))<span class="question-mark">?</span>;
-        <span class="kw">let </span>end = end_re.find(buf).ok_or_else(|| <span class="macro">anyhow!</span>(<span class="string">&quot;end marker not found&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let </span>start = start
+            .find(buf)
+            .ok_or_else(|| regex::Error::Syntax(<span class="string">&quot;start marker not found&quot;</span>.to_string()))
+            .map_err(ParserError::RegexError)<span class="question-mark">?</span>;
+        <span class="kw">let </span>end = end
+            .find(buf)
+            .ok_or_else(|| regex::Error::Syntax(<span class="string">&quot;end marker not found&quot;</span>.to_string()))
+            .map_err(ParserError::RegexError)<span class="question-mark">?</span>;
+        <span class="macro">assert!</span>(start.start() &lt; end.start());
 
-        <span class="kw">let </span>n_start = buf[..start.start()].lines().count();
-        <span class="kw">let </span>n_end = buf[..end.start()].lines().count();
+        <span class="kw">let </span>start = buf[..start.start()].lines().count();
+        <span class="kw">let </span>end = buf[..end.start()].lines().count();
+        <span class="macro">assert!</span>(start &lt; end);
 
-        <span class="prelude-val">Ok</span>((n_start, n_end))
+        <span class="prelude-val">Ok</span>((start, end))
     }
 
-    <span class="doccomment">/// Returns the line position of `re` in `buf`.
-    </span><span class="kw">fn </span>get_pos(buf: <span class="kw-2">&amp;</span>str, re: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;usize, Error&gt; {
-        buf.lines()
-            .position(|line| line.contains(<span class="kw-2">&amp;</span>re))
-            .ok_or_else(|| <span class="macro">anyhow!</span>(<span class="string">&quot;start marker not found&quot;</span>))
-    }
-}
+    <span class="attr">#[cfg(test)]
+    </span><span class="kw">mod </span>tests {
+        <span class="kw">use </span>std::{
+            fs::File,
+            io::{Read, Write},
+            path::PathBuf,
+        };
 
-<span class="comment">// let mut capture: Vec&lt;(usize, &amp;str)&gt; = Vec::new();
-// let ln_start = capture[0].0; let ln_end = capture[1].0;
-// Get position of the regex start and end comments.
-// for (i, line) in buf.lines().enumerate() {
-//     if line.contains(&amp;re_start) { capture.push((i, line)); }
-//     if line.contains(&amp;re_end) { capture.push((i, line)); break; }
-// }
-//
-// Mutate and replace the content between them with new content.
-// let mut start = buf_arr[0..=capture[0].0].to_owned();
-// let mut end = buf_arr[capture[1].0..].to_owned();
-// let mid = buf_arr[capture[0].0..capture[1].0].to_owned();
+        <span class="kw">use </span>pretty_assertions::assert_eq;
+        <span class="kw">use </span>quickcheck::{quickcheck, Arbitrary, Gen};
+        <span class="kw">use </span>quickcheck_macros::<span class="kw-2">*</span>;
+        <span class="kw">use </span>rand::Rng;
+        <span class="kw">use </span>tempfile::tempdir;
 
-</span><span class="attr">#[cfg(test)]
-</span><span class="kw">mod </span>tests {
-    <span class="comment">// use pretty_assertions::assert_eq;
+        <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-    </span><span class="kw">use super</span>::<span class="kw-2">*</span>;
+        <span class="attr">#[derive(Debug, PartialEq, Clone, Default)]
+        </span><span class="kw">pub struct </span>Input {
+            <span class="kw">pub </span>text: String,
+            <span class="kw">pub </span>block: CommentBlock,
+        }
+        <span class="kw">impl </span>Arbitrary <span class="kw">for </span>Input {
+            <span class="kw">fn </span>arbitrary(g: <span class="kw-2">&amp;mut </span>Gen) -&gt; <span class="self">Self </span>{
+                Input {
+                    text: Arbitrary::arbitrary(g),
+                    block: CommentBlock::new(Arbitrary::arbitrary(g)),
+                }
+            }
+        }
 
-    <span class="kw">const </span>PKG_NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="macro">env!</span>(<span class="string">&quot;CARGO_PKG_NAME&quot;</span>);
-    <span class="kw">const </span>README_PATH: <span class="kw-2">&amp;</span>str = <span class="string">&quot;README.md&quot;</span>;
-    <span class="kw">const </span>TO_UPDATE_WITH: <span class="kw-2">&amp;</span>str = <span class="string">r#&quot;* [d](...) - ...
+        <span class="doccomment">/// Check if the file was updated with new text.
+        </span><span class="kw">fn </span>test_if_written(path: <span class="kw-2">&amp;</span>PathBuf, initial_content: <span class="kw-2">&amp;</span>str) -&gt; anyhow::Result&lt;()&gt; {
+            <span class="kw">let </span><span class="kw-2">mut </span>f = File::open(path).unwrap();
+            <span class="kw">let </span><span class="kw-2">mut </span>buf = String::new();
+            f.read_to_string(<span class="kw-2">&amp;mut </span>buf).unwrap();
+            <span class="kw">let </span>path = path.to_string_lossy();
+            <span class="prelude-val">Ok</span>(<span class="macro">assert_eq!</span>(
+                buf, initial_content,
+                <span class="string">&quot;Should write `INITIAL_CONTENT` to tempfile at {path}&quot;</span>,
+            ))
+        }
+
+        <span class="comment">// Struct representing a block of text
+        </span><span class="attr">#[derive(Clone, Debug, Eq, PartialEq)]
+        </span><span class="kw">struct </span>Text {
+            content: Box&lt;String&gt;,
+        }
+
+        <span class="comment">// Implement the `Arbitrary` trait for the `Text` struct String type implements Arbitrary
+        // and can be used to generate random strings for the content field of Text.
+        </span><span class="kw">impl </span>Arbitrary <span class="kw">for </span>Text {
+            <span class="doccomment">/// Generate a random string with length between 0 and 100
+            </span><span class="kw">fn </span>arbitrary(g: <span class="kw-2">&amp;mut </span>Gen) -&gt; <span class="self">Self </span>{
+                <span class="kw">let </span><span class="kw-2">mut </span>rng = rand::thread_rng(); <span class="comment">// Create a random number generator
+                </span><span class="kw">let </span>len: usize = Gen::new(rng.gen_range(<span class="number">30</span>..<span class="number">100</span>)).size(); <span class="comment">// Generate a random length for the content
+                </span><span class="kw">let </span>lines: Vec&lt;<span class="kw">_</span>&gt; = (<span class="number">0</span>..len).map(|<span class="kw">_</span>| String::arbitrary(g)).collect(); <span class="comment">// Generate `len` random lines of text
+                </span><span class="kw">let </span>content: Box&lt;String&gt; = Box::new(lines.join(<span class="string">&quot;\n&quot;</span>)); <span class="comment">// Join the lines into a single multi-line string
+
+                </span>Text { content }
+            }
+        }
+
+        <span class="comment">//--------------------------------------------------------------------------------
+
+        </span><span class="kw">const </span>INITIAL_CONTENT: <span class="kw-2">&amp;</span>str = <span class="string">r#&quot;# README Test
+
+This is a dashboard to display all users projects.
+
+&lt;!--START_SECTION:tag_1--&gt;
+&lt;!--END_SECTION:tag_1--&gt;
+
+# LICENSE
+
+Lorem ipsum dolor sit amet, qui minim labore adipisicing minim sint cillum sint consectetur cupidatat.&quot;#</span>;
+
+        <span class="kw">const </span>TO_UPDATE_WITH: <span class="kw-2">&amp;</span>str = <span class="string">r#&quot;* [d](...) - ...
  * [e](...) - ...
  * [a](...) - ...
  * [b](...) - ...
  * [a](...) - ...
  * [f](...) - ...&quot;#</span>;
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>run_main() -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
-        builder().filter_level(Info).filter_level(Debug).init();
-        <span class="kw">let </span>start = Instant::now();
-        <span class="kw">let </span>section_name = <span class="kw-2">&amp;</span><span class="string">&quot;tag_1&quot;</span>;
-        <span class="kw">let </span>comment_block = CommentBlock::new(section_name);
+        <span class="comment">//--------------------------------------------------------------------------------
 
-        <span class="comment">// match crate_lib::try_lib_main(TO_UPDATE_WITH, Path::new(README_PATH)) {
-        </span><span class="kw">match </span>findrepl::replace(TO_UPDATE_WITH, comment_block, Path::new(README_PATH)) {
-            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="macro">info!</span>(<span class="string">&quot;Finished successfully in {:#.2?}\n\n&quot;</span>, start.elapsed()),
-            <span class="prelude-val">Err</span>(err) =&gt; {
-                <span class="kw">let </span>err = <span class="macro">anyhow!</span>(<span class="string">&quot;{err}&quot;</span>);
-                <span class="macro">log::error!</span>(<span class="string">&quot;{err}&quot;</span>);
-                <span class="kw">return </span><span class="prelude-val">Err</span>(err);
+        </span><span class="attr">#[test]
+        </span><span class="kw">fn </span>should_replace() {
+            <span class="kw">let </span>input = Input {
+                text: TO_UPDATE_WITH.to_string(),
+                block: CommentBlock::new(<span class="string">&quot;tag_1&quot;</span>.to_string()),
+                <span class="comment">// path: Path::new(&quot;README.md&quot;).to_path_buf(),
+            </span>};
+            <span class="comment">// Initialize temp files.
+            </span><span class="kw">let </span>dir = tempdir().unwrap();
+            <span class="kw">let </span>path = dir.path().join(<span class="string">&quot;README.md&quot;</span>);
+            <span class="comment">// Write INITIAL_CONTENT to tempfile.
+            </span><span class="kw">let </span><span class="kw-2">mut </span>f = File::create(<span class="kw-2">&amp;</span>path).unwrap();
+            f.write_all(INITIAL_CONTENT.as_bytes()).unwrap();
+            test_if_written(<span class="kw-2">&amp;</span>path, INITIAL_CONTENT)
+                .expect(<span class="string">&quot;Should write and match the initial content&quot;</span>);
+            <span class="kw">let </span>result = replace(<span class="kw-2">&amp;</span>input.text, input.block, <span class="kw-2">&amp;</span>path);
+            <span class="macro">assert_eq!</span>(result.is_ok(), <span class="bool-val">true</span>, <span class="string">&quot;Should replace text with `parser::findrepl`&quot;</span>);
+            <span class="comment">// Check if the file was updated with new text.
+            </span><span class="kw">let </span><span class="kw-2">mut </span>f = File::open(<span class="kw-2">&amp;</span>path).unwrap();
+            <span class="kw">let </span><span class="kw-2">mut </span>buf = String::new();
+            f.read_to_string(<span class="kw-2">&amp;mut </span>buf).unwrap();
+            <span class="macro">assert_eq!</span>(buf.contains(<span class="kw-2">&amp;</span>input.text), <span class="bool-val">true</span>);
+        }
+
+        <span class="attr">#[test]
+        </span><span class="kw">fn </span>quickcheck_get_section_positions() {
+            <span class="kw">fn </span>prop(text: Text) -&gt; bool {
+                <span class="kw">let </span>block = CommentBlock::new(<span class="string">&quot;tag_1&quot;</span>.to_string());
+                <span class="kw">let </span>quick_fuzz = text.content;
+                <span class="kw">let </span>buf =
+                    <span class="macro">format!</span>(<span class="string">&quot;&lt;!--START_SECTION:tag_1--&gt;\n{}\n&lt;!--END_SECTION:tag_1--&gt;&quot;</span>, quick_fuzz);
+
+                <span class="kw">let </span>re_start = <span class="macro">comment_block!</span>(block.section_name, block.marker.<span class="number">0</span>);
+                <span class="kw">let </span>re_end = <span class="macro">comment_block!</span>(block.section_name, block.marker.<span class="number">1</span>);
+
+                <span class="kw">let </span>(start, end) = get_block_positions(<span class="kw-2">&amp;</span>buf, <span class="kw-2">&amp;</span>re_start, <span class="kw-2">&amp;</span>re_end).expect(
+                    <span class="string">&quot;Should returns the line positions of start and end markers for the given \
+                     buffer.&quot;</span>,
+                );
+                <span class="comment">// assert_eq!(Box::new(buf), quick_fuzz);
+                </span>start &lt; end
             }
-        };
 
-        <span class="prelude-val">Ok</span>(())
+            quickcheck(prop <span class="kw">as fn</span>(Text) -&gt; bool);
+        }
+
+        <span class="attr">#[test]
+        </span><span class="kw">fn </span>should_get_section_positions() {
+            <span class="kw">let </span>block = CommentBlock::new(<span class="string">&quot;tag_1&quot;</span>.to_string());
+            <span class="kw">let </span>buf: <span class="kw-2">&amp;</span>str = <span class="string">r#&quot;&lt;!--START_SECTION:tag_1--&gt;
+* [lorem](https://github.com/username/username) — username&#39;s GitHub profile.
+* [foobar](https://github.com/username/foobar)
+* [bar](https://github.com/username/bar) — Lorem ipsum dolor sit amet, qui minim labore
+  adipisicing minim sint cillum sint consectetur cupidatat. ...
+&lt;!--END_SECTION:tag_1--&gt;&quot;#</span>;
+
+            <span class="kw">let </span>re_start = <span class="macro">comment_block!</span>(block.section_name, block.marker.<span class="number">0</span>);
+            <span class="kw">let </span>re_end = <span class="macro">comment_block!</span>(block.section_name, block.marker.<span class="number">1</span>);
+            <span class="macro">assert_eq!</span>(re_start, <span class="string">&quot;&lt;!--START_SECTION:tag_1--&gt;&quot;</span>);
+            <span class="macro">assert_eq!</span>(re_end, <span class="string">&quot;&lt;!--END_SECTION:tag_1--&gt;&quot;</span>);
+
+            <span class="kw">let </span>(start, end) = get_block_positions(buf, <span class="kw-2">&amp;</span>re_start, <span class="kw-2">&amp;</span>re_end).expect(
+                <span class="string">&quot;Should returns the line positions of start and end markers for the given buffer.&quot;</span>,
+            );
+            <span class="macro">assert!</span>(start &lt; end);
+            <span class="macro">assert_eq!</span>((start, end), (<span class="number">0</span>, <span class="number">5</span>));
+        }
     }
 }
 </code></pre></div>
