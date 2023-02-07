@@ -259,14 +259,10 @@ pub mod findrepl {
             start.ok_or_else(|| Syntax("start marker not found".to_string()))?,
             end.ok_or_else(|| Syntax("end marker not found".to_string()))?,
         );
-        let ((start, end), _) = rayon::join(
-            || {
-                rayon::join(
-                    || buf[..start.start()].lines().count(),
-                    || buf[..end.start()].lines().count(),
-                )
-            },
-            || assert!(start.start() < end.start()),
+        crossbeam::scope(|_| assert!(start.start() < end.start())).unwrap();
+        let (start, end) = rayon::join(
+            || buf[..start.start()].lines().count(),
+            || buf[..end.start()].lines().count(),
         );
         debug_assert!(start < end);
         Ok((start, end))
