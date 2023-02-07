@@ -37,7 +37,11 @@
 
 mod markdown;
 
-use std::{fs::OpenOptions, path::Path, sync::Arc};
+use std::{
+    fs::{File, OpenOptions},
+    path::Path,
+    sync::Arc,
+};
 
 use anyhow::anyhow;
 use app::PATH_JSON_GH_REPO_LIST;
@@ -73,19 +77,16 @@ fn try_main() -> app::Result<(), AppError> {
     let mut dashboard =
         app::App { config: config::Config {}, db: DB { data: None, repo_list: None } };
 
-    dashboard
-        .db
-        .fetch_repos_write_data()
-        .map_err(|e| AppError::XshellError(anyhow!(e).to_string()))?;
+    dashboard.db.fetch_repos_write_data()?;
 
-    let file = OpenOptions::new()
+    let file: File = OpenOptions::new()
         .read(true)
         .write(true)
         .create(true)
         .open(PATH_JSON_GH_REPO_LIST)
         .map_err(|e| AppError::Io(Arc::new(e)))?;
 
-    let data = dashboard
+    let data: &Vec<GitRepo> = dashboard
         .db
         .data
         .as_ref()
@@ -93,7 +94,7 @@ fn try_main() -> app::Result<(), AppError> {
     serde_json::to_writer_pretty(file, data).map_err(AppError::SerdeError)?;
     log::info!("Wrote git repo list to file {}", PATH_JSON_GH_REPO_LIST);
 
-    let list = dashboard
+    let list: Vec<_> = dashboard
         .db
         .data
         .ok_or_else(|| AppError::LogicBug(anyhow!("Failed to find data").to_string()))?
@@ -104,7 +105,6 @@ fn try_main() -> app::Result<(), AppError> {
             description: repo.description.to_string(),
         })
         .collect();
-
     dashboard.db.repo_list = Some(list);
 
     let text: String = dashboard
@@ -115,11 +115,9 @@ fn try_main() -> app::Result<(), AppError> {
         .map(markdown::fmt_markdown_list_item)
         .collect::<Vec<_>>()
         .join("\n");
-
-    findrepl::replace(&text, CommentBlock::new("tag_1".to_string()), Path::new(PATH_MD_OUTPUT))
-        .map_err(|e| AppError::RegexError(e.into()))?;
-
-    Ok(())
+    let block = CommentBlock::new("tag_1".to_string());
+    let path = &Path::new(PATH_MD_OUTPUT);
+    findrepl::replace(&text, block, path).map_err(|e| AppError::RegexError(e.into()))
 }
 
 //------------------------------------------------------------------------------
@@ -259,20 +257,16 @@ pub mod db {
     impl GitCliOps for DB {
         /// Assigns the fetched response to `self.data`.
         fn fetch_repos_write_data(&mut self) -> Result<(), AppError> {
-            let sh = Shell::new().unwrap();
+            let sh = Shell::new().map_err(AppError::XshellIo)?;
             let opts_json_args: String = ARGS_GH_REPO_LIST_JSON.join(",");
-
-            let repos_json_ser: String =
-                cmd!(sh, "gh repo list --source -L 999 --json {opts_json_args}")
-                    .read()
-                    .map_err(AppError::XshellIo)?;
+            let repos_json_ser = cmd!(sh, "gh repo list --source -L 999 --json {opts_json_args}")
+                .read()
+                .map_err(AppError::XshellIo)?;
             log::info!("Fetched repositories with command: `gh repo list`");
 
-            // "Failed to Deserialize repositories. {}",
-            let repos_struct_de: Vec<GitRepo> = serde_json::from_str(&repos_json_ser)
-                .map_err(|e| AppError::Io(Arc::new(e.into())))?;
+            let repos_struct_de = serde_json::from_str::<Vec<GitRepo>>(&repos_json_ser)
+                .map_err(AppError::SerdeError)?;
             log::info!("Deserialized {} repositories", repos_struct_de.len());
-
             self.data = Some(repos_struct_de);
 
             Ok(())
@@ -285,7 +279,7 @@ pub mod db {
 pub mod gh {
     use serde::{Deserialize, Serialize};
 
-    use crate::app;
+    use crate::app::AppError;
 
     #[derive(Clone, Debug, Deserialize, Serialize)]
     #[serde(rename_all = "camelCase")] // https://serde.rs/attr-rename.html
@@ -336,7 +330,7 @@ pub mod gh {
         /// * [`xshell::cmd!`] - on `read` returns a non-zero return code considered to be an error.
         /// * [`serde_json`] - conversion can fail if the structure of the input does not match the
         ///   structure expected by `Vec<GitRepo>`.
-        fn fetch_repos_write_data(&mut self) -> Result<(), app::AppError>;
+        fn fetch_repos_write_data(&mut self) -> Result<(), AppError>;
     }
 }
 
