@@ -41,7 +41,7 @@
 // #[cfg(doctest)]
 // doctest!("../README.md");
 
-use std::{any::Any, convert::Into, io, sync::Arc, write};
+use std::{convert::Into, io, sync::Arc, write};
 
 use regex::Error as RegexError;
 
