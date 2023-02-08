@@ -1,7 +1,7 @@
 # dashboard
 
 [![documentation status](https://github.com/lloydlobo/dashboard/actions/workflows/rustdoc.yml/badge.svg)](https://github.com/lloydlobo/dashboard/actions/workflows/rustdoc.yml)
-[![update repository list.](https://github.com/lloydlobo/dashboard/actions/workflows/fetch_repo_list.yml/badge.svg)](https://github.com/lloydlobo/dashboard/actions/workflows/fetch_repo_list.yml)
+[![update repository list](https://github.com/lloydlobo/dashboard/actions/workflows/update_gh_repo.yml/badge.svg)](https://github.com/lloydlobo/dashboard/actions/workflows/update_gh_repo.yml)
 
 This is a dashboard to display all projects.
 
