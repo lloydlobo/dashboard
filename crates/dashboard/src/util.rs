@@ -39,7 +39,7 @@ pub(crate) fn replace_file_extension_only(file_path: &str, new_extension: &str) 
     let path = Path::new(file_path);
     let file_name = path.file_name().unwrap().to_str().unwrap();
     let stem = file_name.split('.').next().unwrap();
-    let new_file_name = format!("{}.{}", stem, new_extension);
+    let new_file_name = format!("{stem}.{new_extension}");
     new_file_name
 }
 
