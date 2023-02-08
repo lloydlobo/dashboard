@@ -634,7 +634,7 @@
 <span class="kw">pub mod </span>app {
     <span class="doccomment">//! `app` module contains `App` which contains prelude for all modules in this crate.
     </span><span class="kw">use </span>std::{
-        fs::{File, OpenOptions},
+        fs::{OpenOptions},
         path::Path,
         sync::Arc,
     };
@@ -646,7 +646,7 @@
 
     <span class="kw">use crate</span>::{
         config,
-        constant::{DESC_WC, PATH_JSON_GH_REPO_LIST, PATH_MD_OUTPUT},
+        constant::{DESC_WC},
         db::DB,
         gh::{GitCliOps, GitRepo, GitRepoListItem},
         util,
@@ -948,7 +948,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>replace_file_extension(file_path: <span class="kw-2">&amp;</span>str, new_extension: <span class="kw-2">&amp;</span>str) -&gt; String {
         <span class="kw">let </span>path = Path::new(file_path);
         <span class="kw">let </span>stem = path.file_stem().unwrap().to_str().unwrap();
-        <span class="kw">let </span>new_file_path = <span class="macro">format!</span>(<span class="string">&quot;{}.{}&quot;</span>, stem, new_extension);
+        <span class="kw">let </span>new_file_path = <span class="macro">format!</span>(<span class="string">&quot;{stem}.{new_extension}&quot;</span>);
         new_file_path
     }
 
