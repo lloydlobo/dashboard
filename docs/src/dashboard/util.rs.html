@@ -86,6 +86,19 @@
 <a href="#86" id="86">86</a>
 <a href="#87" id="87">87</a>
 <a href="#88" id="88">88</a>
+<a href="#89" id="89">89</a>
+<a href="#90" id="90">90</a>
+<a href="#91" id="91">91</a>
+<a href="#92" id="92">92</a>
+<a href="#93" id="93">93</a>
+<a href="#94" id="94">94</a>
+<a href="#95" id="95">95</a>
+<a href="#96" id="96">96</a>
+<a href="#97" id="97">97</a>
+<a href="#98" id="98">98</a>
+<a href="#99" id="99">99</a>
+<a href="#100" id="100">100</a>
+<a href="#101" id="101">101</a>
 </pre><pre class="rust"><code><span class="doccomment">//! `util` contains common utility functions and items. YAGNI!
 //!
 //! # Find and replace file extensions:
@@ -162,10 +175,23 @@
     }
 
     <span class="attr">#[test]
-    </span><span class="kw">fn </span>should_generate_random_data() {
+    </span><span class="kw">fn </span>should_rep_ext_regex() {
         <span class="kw">fn </span>prop(text: OnlyLowercaseLetters) -&gt; bool {
             <span class="kw">let </span>got = <span class="macro">format!</span>(<span class="string">&quot;filename.{}&quot;</span>, text.<span class="number">0</span>);
             <span class="kw">let </span>got = replace_extension_regex(<span class="kw-2">&amp;</span>got, <span class="string">&quot;md&quot;</span>);
+            <span class="kw">let </span>expect = <span class="string">&quot;filename.md&quot;</span>;
+            <span class="macro">assert_eq!</span>(got, expect);
+            got.contains(expect)
+        }
+
+        quickcheck(prop <span class="kw">as fn</span>(OnlyLowercaseLetters) -&gt; bool);
+    }
+
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>should_rep_ext_file_stem() {
+        <span class="kw">fn </span>prop(text: OnlyLowercaseLetters) -&gt; bool {
+            <span class="kw">let </span>got = <span class="macro">format!</span>(<span class="string">&quot;filename.{}&quot;</span>, text.<span class="number">0</span>);
+            <span class="kw">let </span>got = replace_file_extension(<span class="kw-2">&amp;</span>got, <span class="string">&quot;md&quot;</span>);
             <span class="kw">let </span>expect = <span class="string">&quot;filename.md&quot;</span>;
             <span class="macro">assert_eq!</span>(got, expect);
             got.contains(expect)
