@@ -472,6 +472,7 @@
 <a href="#472" id="472">472</a>
 <a href="#473" id="473">473</a>
 <a href="#474" id="474">474</a>
+<a href="#475" id="475">475</a>
 </pre><pre class="rust"><code><span class="doccomment">//! # parser
 //!
 //! ## [`findrepl`]
@@ -716,6 +717,7 @@
             .map_err(|e| ParserError::Io(Arc::new(e)))<span class="question-mark">?
             </span>.read_to_string(<span class="kw-2">&amp;mut </span>buf)
             .map_err(|e| ParserError::Io(Arc::new(e)))<span class="question-mark">?</span>;
+
         <span class="comment">// Returns the start and end position of regex section.
         </span><span class="kw">let </span>(n_start, n_end) = get_block_positions(<span class="kw-2">&amp;</span>buf, <span class="kw-2">&amp;</span>re_start, <span class="kw-2">&amp;</span>re_end)
             .map_err(|e| ParserError::RegexError(e.into()))<span class="question-mark">?</span>;
@@ -838,7 +840,7 @@
         <span class="comment">// Struct representing a block of text
         </span><span class="attr">#[derive(Clone, Debug, Eq, PartialEq)]
         </span><span class="kw">struct </span>Text {
-            content: Box&lt;String&gt;,
+            content: String,
         }
 
         <span class="comment">// Implement the `Arbitrary` trait for the `Text` struct String type implements Arbitrary
@@ -849,7 +851,7 @@
                 <span class="kw">let </span><span class="kw-2">mut </span>rng = rand::thread_rng(); <span class="comment">// Create a random number generator
                 </span><span class="kw">let </span>len: usize = Gen::new(rng.gen_range(<span class="number">30</span>..<span class="number">100</span>)).size(); <span class="comment">// Generate a random length for the content
                 </span><span class="kw">let </span>lines: Vec&lt;<span class="kw">_</span>&gt; = (<span class="number">0</span>..len).map(|<span class="kw">_</span>| String::arbitrary(g)).collect(); <span class="comment">// Generate `len` random lines of text
-                </span><span class="kw">let </span>content: Box&lt;String&gt; = Box::new(lines.join(<span class="string">&quot;\n&quot;</span>)); <span class="comment">// Join the lines into a single multi-line string
+                </span><span class="kw">let </span>content = lines.join(<span class="string">&quot;\n&quot;</span>); <span class="comment">// Join the lines into a single multi-line string
 
                 </span>Text { content }
             }
