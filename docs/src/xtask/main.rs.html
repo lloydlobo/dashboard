@@ -247,6 +247,7 @@ ARGS:
     fs::create_dir_all(dist_dir())<span class="question-mark">?</span>;
     dist_binary()<span class="question-mark">?</span>;
     dist_manpage()<span class="question-mark">?</span>;
+
     <span class="prelude-val">Ok</span>(())
 }
 
@@ -291,10 +292,9 @@ ARGS:
 }
 
 <span class="kw">fn </span>run_dist_doc() -&gt; <span class="prelude-ty">Result</span>&lt;(), DynError&gt; {
-    {
-        <span class="kw">let _ </span>= fs::remove_dir_all(dir_docs());
-        dist_doc_xtask()<span class="question-mark">?</span>;
-    }
+    <span class="kw">let _ </span>= fs::remove_dir_all(dir_docs());
+    dist_doc_xtask()<span class="question-mark">?</span>;
+
     <span class="prelude-val">Ok</span>(())
 }
 

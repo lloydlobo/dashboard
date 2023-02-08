@@ -1,5 +1,5 @@
 var sourcesIndex = JSON.parse('{\
-"dashboard":["",[],["main.rs"]],\
+"dashboard":["",[],["lib.rs"]],\
 "parser":["",[],["error.rs","lib.rs","macros.rs"]],\
 "xtask":["",[],["main.rs"]]\
 }');
