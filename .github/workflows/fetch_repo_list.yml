@@ -1,0 +1,28 @@
+name: Schedule bin dashboard updating README.md
+on:
+  schedule:
+    # * is a special character in YAML so you have to quote this string
+    - cron: "30 5,17 * * *" # triggers the workflow every day at 5:30 and 17:30 UTC:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+env:
+  CARGO_TERM_COLOR: always
+  # Add secrets to access the Github repository
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  # Add secrets to access shell gh cli?
+#   SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+#   SSH_PUBLIC_KEY: ${{ secrets.SSH_PUBLIC_KEY }}
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build
+        run: cargo build --verbose
+      - name: Run tests
+        run: cargo test --verbose
+      - name: Run binary dashboard
+        run: |
+          cargo run --bin dashboard
