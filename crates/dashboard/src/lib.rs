@@ -36,7 +36,7 @@ pub(crate) mod constant {
 pub mod app {
     //! `app` module contains `App` which contains prelude for all modules in this crate.
     use std::{
-        fs::{File, OpenOptions},
+        fs::{OpenOptions},
         path::Path,
         sync::Arc,
     };
@@ -48,7 +48,7 @@ pub mod app {
 
     use crate::{
         config,
-        constant::{DESC_WC, PATH_JSON_GH_REPO_LIST, PATH_MD_OUTPUT},
+        constant::{DESC_WC},
         db::DB,
         gh::{GitCliOps, GitRepo, GitRepoListItem},
         util,
@@ -350,7 +350,7 @@ pub(crate) mod util {
     pub(crate) fn replace_file_extension(file_path: &str, new_extension: &str) -> String {
         let path = Path::new(file_path);
         let stem = path.file_stem().unwrap().to_str().unwrap();
-        let new_file_path = format!("{}.{}", stem, new_extension);
+        let new_file_path = format!("{stem}.{new_extension}");
         new_file_path
     }
 
