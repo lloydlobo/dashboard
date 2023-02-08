@@ -1,6 +1,6 @@
 //! TODO:
 
-pub mod config {
+pub(crate) mod config {
     use serde::{Deserialize, Serialize};
 
     #[derive(Clone, Debug, Deserialize, Serialize)]

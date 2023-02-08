@@ -1,0 +1,39 @@
+# The steps set up the Rust environment, set up the SSH keys,
+# and run the cron job every day at midnight to run the binary dashboard
+# using the cargo run --bin dashboard command. The secrets for the
+# Github repository are stored securely as environment variables in the env section.
+#
+# To access your Github secrets, you need to add them to the Github repository.
+# Go to the repository's "Settings" and then "Secrets". Add the necessary secrets as key-value pairs.
+name: Schedule bin dashboard updating README.md
+on:
+  schedule:
+    - cron: "0 0 * * *" # Run everyday at midnight
+env:
+  # Add secrets to access the Github repository
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  # Add secrets to access shell gh cli?
+  SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+  SSH_PUBLIC_KEY: ${{ secrets.SSH_PUBLIC_KEY }}
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Set up Rust environment
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+      - name: Set up SSH keys
+        run: |
+          echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ssh_key
+          chmod 600 ssh_key
+          eval $(ssh-agent -s)
+          ssh-add ssh_key
+          mkdir -p ~/.ssh
+          echo "$SSH_PUBLIC_KEY" >> ~/.ssh/authorized_keys
+      - name: Run binary dashboard
+        run: |
+          cargo run --bin dashboard

@@ -41,7 +41,7 @@ use anyhow::anyhow;
 use dashboard::app::{self, AppError};
 use lazy_static::lazy_static;
 
-// pub use self::{app::*, gh::*};
+pub use self::app::*;
 
 lazy_static! {
     // static ref ERR: AppError = AppError::LogicBug(anyhow!("Failed to find data").to_string());
