@@ -27,11 +27,20 @@ use crate::app::AppError;
 /// the path using file_stem() and convert it to a &str using to_str(). Finally, we return a
 /// new String created using the format! macro that consists of the stem, a dot (.), and the
 /// new_extension.
+//TODO: Rename this to strip the whole path to filename only.
 pub(crate) fn replace_file_extension(file_path: &str, new_extension: &str) -> String {
     let path = Path::new(file_path);
     let stem = path.file_stem().unwrap().to_str().unwrap();
     let new_file_path = format!("{stem}.{new_extension}");
     new_file_path
+}
+
+pub(crate) fn replace_file_extension_only(file_path: &str, new_extension: &str) -> String {
+    let path = Path::new(file_path);
+    let file_name = path.file_name().unwrap().to_str().unwrap();
+    let stem = file_name.split('.').next().unwrap();
+    let new_file_name = format!("{}.{}", stem, new_extension);
+    new_file_name
 }
 
 /// `replace_extension_regex`
@@ -97,5 +106,24 @@ mod tests {
         }
 
         quickcheck(prop as fn(OnlyLowercaseLetters) -> bool);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_replace_file_extension() {
+        let file_path = "/home/chatgpt/README.md";
+        let new_extension = "txt";
+        let expected_output = "/home/chatgpt/README.txt";
+        let result = replace_file_extension(file_path, new_extension);
+        assert_eq!(result, expected_output);
+    }
+
+    #[test]
+    fn test_replace_file_extension_only() {
+        let file_path = "/home/chatgpt/README.md";
+        let new_extension = "txt";
+        let expected_file_name = "README.txt";
+        let new_file_name = replace_file_extension_only(file_path, new_extension);
+        assert_eq!(new_file_name, expected_file_name);
     }
 }
