@@ -596,31 +596,6 @@
 <a href="#596" id="596">596</a>
 <a href="#597" id="597">597</a>
 <a href="#598" id="598">598</a>
-<a href="#599" id="599">599</a>
-<a href="#600" id="600">600</a>
-<a href="#601" id="601">601</a>
-<a href="#602" id="602">602</a>
-<a href="#603" id="603">603</a>
-<a href="#604" id="604">604</a>
-<a href="#605" id="605">605</a>
-<a href="#606" id="606">606</a>
-<a href="#607" id="607">607</a>
-<a href="#608" id="608">608</a>
-<a href="#609" id="609">609</a>
-<a href="#610" id="610">610</a>
-<a href="#611" id="611">611</a>
-<a href="#612" id="612">612</a>
-<a href="#613" id="613">613</a>
-<a href="#614" id="614">614</a>
-<a href="#615" id="615">615</a>
-<a href="#616" id="616">616</a>
-<a href="#617" id="617">617</a>
-<a href="#618" id="618">618</a>
-<a href="#619" id="619">619</a>
-<a href="#620" id="620">620</a>
-<a href="#621" id="621">621</a>
-<a href="#622" id="622">622</a>
-<a href="#623" id="623">623</a>
 </pre><pre class="rust"><code><span class="doccomment">//! TODO:
 
 </span><span class="comment">//------------------------------------------------------------------------------
@@ -723,19 +698,6 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub fn </span>try_main_refactor_v2(file_path: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;(), AppError&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>dashboard =
-            App { config: config::Config {}, db: DB { data: <span class="prelude-val">None</span>, repo_list: <span class="prelude-val">None </span>} };
-
-        GitCliOps::fetch_repos_write_data(<span class="kw-2">&amp;mut </span>dashboard.db)<span class="question-mark">?</span>;
-
-        update_markdown_file(dashboard.db.data.as_ref(), file_path)<span class="question-mark">?</span>;
-
-        write_json_file(dashboard.db.data.as_ref(), file_path)<span class="question-mark">?</span>;
-
-        <span class="prelude-val">Ok</span>(())
-    }
-
     <span class="kw">fn </span>write_json_file(data: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Vec&lt;GitRepo&gt;&gt;, file_path: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;(), AppError&gt; {
         <span class="kw">let </span>path = util::replace_file_extension(file_path, <span class="string">&quot;json&quot;</span>);
 
@@ -754,110 +716,6 @@
         <span class="macro">log::info!</span>(<span class="string">&quot;Writing git repo list to file {}&quot;</span>, <span class="kw-2">&amp;</span>path);
 
         serde_json::to_writer_pretty(file, data).map_err(AppError::SerdeError)
-    }
-
-    <span class="comment">//------------------------------------------------------------------------------
-
-    </span><span class="kw">pub fn </span>try_main_refactor() -&gt; <span class="prelude-ty">Result</span>&lt;(), AppError&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>dashboard =
-            App { config: config::Config {}, db: DB { data: <span class="prelude-val">None</span>, repo_list: <span class="prelude-val">None </span>} };
-
-        GitCliOps::fetch_repos_write_data(<span class="kw-2">&amp;mut </span>dashboard.db)<span class="question-mark">?</span>;
-
-        thread::scope(|<span class="kw">_</span>| {
-            <span class="kw">let </span>list: Vec&lt;<span class="kw">_</span>&gt; = <span class="kw">match </span>dashboard.db.data.as_ref() {
-                <span class="prelude-val">Some</span>(data) =&gt; data.iter().map(GitRepoListItem::new).collect(),
-                <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(AppError::UnwrapError(<span class="string">&quot;Failed to find data&quot;</span>.to_string())),
-            };
-
-            rayon::join(
-                || {
-                    <span class="macro">log::info!</span>(<span class="string">&quot;Updating git repo list in file {}&quot;</span>, PATH_MD_OUTPUT);
-                    findrepl::replace_par(
-                        <span class="kw-2">&amp;</span>list.iter().map(fmt_markdown_list_item).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;().join(<span class="string">&quot;\n&quot;</span>),
-                        CommentBlock::new(<span class="string">&quot;tag_1&quot;</span>.to_string()),
-                        Path::new(PATH_MD_OUTPUT),
-                    )
-                    .map_err(AppError::ParserError)
-                },
-                || dashboard.db.repo_list = <span class="prelude-val">Some</span>(list.clone()),
-            )
-            .<span class="number">0
-        </span>})
-        .map_err(|e| AppError::CrossbeamError(<span class="macro">anyhow!</span>(<span class="string">&quot;{e:?}&quot;</span>)))<span class="question-mark">??</span>;
-
-        thread::scope(|<span class="kw">_</span>| {
-            <span class="kw">let </span>file = OpenOptions::new()
-                .read(<span class="bool-val">true</span>)
-                .write(<span class="bool-val">true</span>)
-                .create(<span class="bool-val">true</span>)
-                .open(PATH_JSON_GH_REPO_LIST)
-                .map_err(|e| AppError::Io(Arc::new(e)))<span class="question-mark">?</span>;
-            <span class="kw">let </span>data = <span class="kw">match </span>dashboard.db.data.as_ref() {
-                <span class="prelude-val">Some</span>(data) =&gt; data,
-                <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(AppError::UnwrapError(<span class="string">&quot;No data found&quot;</span>.to_string())),
-            };
-
-            <span class="macro">log::info!</span>(<span class="string">&quot;Writing git repo list to file {}&quot;</span>, PATH_JSON_GH_REPO_LIST);
-            serde_json::to_writer_pretty(file, data).map_err(AppError::SerdeError)
-        })
-        .map_err(|e| AppError::CrossbeamError(<span class="macro">anyhow!</span>(<span class="string">&quot;{e:?}&quot;</span>)))<span class="question-mark">??</span>;
-
-        <span class="prelude-val">Ok</span>(())
-    }
-
-    <span class="comment">//------------------------------------------------------------------------------
-
-    </span><span class="kw">fn </span>try_main() -&gt; <span class="prelude-ty">Result</span>&lt;(), AppError&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>dashboard =
-            App { config: config::Config {}, db: DB { data: <span class="prelude-val">None</span>, repo_list: <span class="prelude-val">None </span>} };
-
-        dashboard.db.fetch_repos_write_data()<span class="question-mark">?</span>;
-
-        crossbeam::scope(|<span class="kw">_</span>| {
-            <span class="kw">let </span>list: Vec&lt;<span class="kw">_</span>&gt; = dashboard
-                .db
-                .data
-                .as_ref()
-                .ok_or_else(|| AppError::LogicBug(<span class="macro">anyhow!</span>(<span class="string">&quot;Failed to find data&quot;</span>).to_string()))
-                .unwrap()
-                .iter()
-                .map(GitRepoListItem::new)
-                .collect();
-            rayon::join(
-                || {
-                    <span class="kw">let </span>text =
-                        list.iter().map(fmt_markdown_list_item).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;().join(<span class="string">&quot;\n&quot;</span>);
-                    findrepl::replace_par(
-                        <span class="kw-2">&amp;</span>text,
-                        CommentBlock::new(<span class="string">&quot;tag_1&quot;</span>.to_string()),
-                        Path::new(PATH_MD_OUTPUT),
-                    )
-                    .map_err(AppError::ParserError)
-                    .unwrap()
-                },
-                || dashboard.db.repo_list = <span class="prelude-val">Some</span>(list.clone()),
-            );
-        })
-        .unwrap();
-
-        {
-            <span class="kw">let </span>file: File = OpenOptions::new()
-                .read(<span class="bool-val">true</span>)
-                .write(<span class="bool-val">true</span>)
-                .create(<span class="bool-val">true</span>)
-                .open(PATH_JSON_GH_REPO_LIST)
-                .map_err(|e| AppError::Io(Arc::new(e)))<span class="question-mark">?</span>;
-            <span class="kw">let </span>data: <span class="kw-2">&amp;</span>Vec&lt;GitRepo&gt; = dashboard
-                .db
-                .data
-                .as_ref()
-                .ok_or_else(|| AppError::UnwrapError(<span class="string">&quot;No data found&quot;</span>.to_string()))<span class="question-mark">?</span>;
-            serde_json::to_writer_pretty(file, data).map_err(AppError::SerdeError).unwrap();
-            <span class="macro">log::info!</span>(<span class="string">&quot;Wrote git repo list to file {}&quot;</span>, PATH_JSON_GH_REPO_LIST);
-        }
-
-        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Create and format a new markdown list item with repo name, url and its description.
@@ -1161,7 +1019,138 @@
 
 <span class="comment">//------------------------------------------------------------------------------
 
-// mod pretty_error {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>archive {
+    <span class="attr">#![allow(dead_code)]
+
+    </span><span class="kw">use </span>std::{
+        fs::{File, OpenOptions},
+        path::Path,
+        sync::Arc,
+    };
+
+    <span class="kw">use </span>anyhow::anyhow;
+    <span class="kw">use </span>crossbeam::thread;
+    <span class="kw">use </span>parser::findrepl::{<span class="self">self</span>, CommentBlock};
+
+    <span class="kw">use crate</span>::{
+        app::{fmt_markdown_list_item, App, AppError},
+        config,
+        constant::{PATH_JSON_GH_REPO_LIST, PATH_MD_OUTPUT},
+        db::DB,
+        gh::{GitCliOps, GitRepo, GitRepoListItem},
+    };
+
+    <span class="comment">// pub fn try_main_refactor_v2(file_path: &amp;str) -&gt; Result&lt;(), AppError&gt; {
+    //     let mut dashboard =
+    //         App { config: config::Config {}, db: DB { data: None, repo_list: None } };
+    //     GitCliOps::fetch_repos_write_data(&amp;mut dashboard.db)?;
+    //     update_markdown_file(dashboard.db.data.as_ref(), file_path)?;
+    //     write_json_file(dashboard.db.data.as_ref(), file_path)?;
+    //     Ok(())
+    // }
+
+    </span><span class="kw">pub fn </span>try_main_refactor() -&gt; <span class="prelude-ty">Result</span>&lt;(), AppError&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>dashboard =
+            App { config: config::Config {}, db: DB { data: <span class="prelude-val">None</span>, repo_list: <span class="prelude-val">None </span>} };
+
+        GitCliOps::fetch_repos_write_data(<span class="kw-2">&amp;mut </span>dashboard.db)<span class="question-mark">?</span>;
+
+        thread::scope(|<span class="kw">_</span>| {
+            <span class="kw">let </span>list: Vec&lt;<span class="kw">_</span>&gt; = <span class="kw">match </span>dashboard.db.data.as_ref() {
+                <span class="prelude-val">Some</span>(data) =&gt; data.iter().map(GitRepoListItem::new).collect(),
+                <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(AppError::UnwrapError(<span class="string">&quot;Failed to find data&quot;</span>.to_string())),
+            };
+
+            rayon::join(
+                || {
+                    <span class="macro">log::info!</span>(<span class="string">&quot;Updating git repo list in file {}&quot;</span>, PATH_MD_OUTPUT);
+                    findrepl::replace_par(
+                        <span class="kw-2">&amp;</span>list.iter().map(fmt_markdown_list_item).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;().join(<span class="string">&quot;\n&quot;</span>),
+                        CommentBlock::new(<span class="string">&quot;tag_1&quot;</span>.to_string()),
+                        Path::new(PATH_MD_OUTPUT),
+                    )
+                    .map_err(AppError::ParserError)
+                },
+                || dashboard.db.repo_list = <span class="prelude-val">Some</span>(list.clone()),
+            )
+            .<span class="number">0
+        </span>})
+        .map_err(|e| AppError::CrossbeamError(<span class="macro">anyhow!</span>(<span class="string">&quot;{e:?}&quot;</span>)))<span class="question-mark">??</span>;
+
+        thread::scope(|<span class="kw">_</span>| {
+            <span class="kw">let </span>file = OpenOptions::new()
+                .read(<span class="bool-val">true</span>)
+                .write(<span class="bool-val">true</span>)
+                .create(<span class="bool-val">true</span>)
+                .open(PATH_JSON_GH_REPO_LIST)
+                .map_err(|e| AppError::Io(Arc::new(e)))<span class="question-mark">?</span>;
+            <span class="kw">let </span>data = <span class="kw">match </span>dashboard.db.data.as_ref() {
+                <span class="prelude-val">Some</span>(data) =&gt; data,
+                <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(AppError::UnwrapError(<span class="string">&quot;No data found&quot;</span>.to_string())),
+            };
+
+            <span class="macro">log::info!</span>(<span class="string">&quot;Writing git repo list to file {}&quot;</span>, PATH_JSON_GH_REPO_LIST);
+            serde_json::to_writer_pretty(file, data).map_err(AppError::SerdeError)
+        })
+        .map_err(|e| AppError::CrossbeamError(<span class="macro">anyhow!</span>(<span class="string">&quot;{e:?}&quot;</span>)))<span class="question-mark">??</span>;
+
+        <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>try_main() -&gt; <span class="prelude-ty">Result</span>&lt;(), AppError&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>dashboard =
+            App { config: config::Config {}, db: DB { data: <span class="prelude-val">None</span>, repo_list: <span class="prelude-val">None </span>} };
+
+        dashboard.db.fetch_repos_write_data()<span class="question-mark">?</span>;
+
+        crossbeam::scope(|<span class="kw">_</span>| {
+            <span class="kw">let </span>list: Vec&lt;<span class="kw">_</span>&gt; = dashboard
+                .db
+                .data
+                .as_ref()
+                .ok_or_else(|| AppError::LogicBug(<span class="macro">anyhow!</span>(<span class="string">&quot;Failed to find data&quot;</span>).to_string()))
+                .unwrap()
+                .iter()
+                .map(GitRepoListItem::new)
+                .collect();
+            rayon::join(
+                || {
+                    <span class="kw">let </span>text =
+                        list.iter().map(fmt_markdown_list_item).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;().join(<span class="string">&quot;\n&quot;</span>);
+                    findrepl::replace_par(
+                        <span class="kw-2">&amp;</span>text,
+                        CommentBlock::new(<span class="string">&quot;tag_1&quot;</span>.to_string()),
+                        Path::new(PATH_MD_OUTPUT),
+                    )
+                    .map_err(AppError::ParserError)
+                    .unwrap()
+                },
+                || dashboard.db.repo_list = <span class="prelude-val">Some</span>(list.clone()),
+            );
+        })
+        .unwrap();
+
+        {
+            <span class="kw">let </span>file: File = OpenOptions::new()
+                .read(<span class="bool-val">true</span>)
+                .write(<span class="bool-val">true</span>)
+                .create(<span class="bool-val">true</span>)
+                .open(PATH_JSON_GH_REPO_LIST)
+                .map_err(|e| AppError::Io(Arc::new(e)))<span class="question-mark">?</span>;
+            <span class="kw">let </span>data: <span class="kw-2">&amp;</span>Vec&lt;GitRepo&gt; = dashboard
+                .db
+                .data
+                .as_ref()
+                .ok_or_else(|| AppError::UnwrapError(<span class="string">&quot;No data found&quot;</span>.to_string()))<span class="question-mark">?</span>;
+            serde_json::to_writer_pretty(file, data).map_err(AppError::SerdeError).unwrap();
+            <span class="macro">log::info!</span>(<span class="string">&quot;Wrote git repo list to file {}&quot;</span>, PATH_JSON_GH_REPO_LIST);
+        }
+
+        <span class="prelude-val">Ok</span>(())
+    }
+}
+
+<span class="comment">// mod pretty_error {
 //
 //     use miette::prelude::*;
 // In this example, each variant of the AppError struct is passed to miette::code to format the
@@ -1205,44 +1194,5 @@
 // }
 
 //------------------------------------------------------------------------------
-
-// thread::scope(|s| {
-//     let handle = s.spawn(|_| {
-//         log::info!(&quot;Updating git repo list in file {}&quot;, file_path);
-//         if let Err(e) = findrepl::replace_par(
-//             &amp;list.iter().map(fmt_markdown_list_item).collect::&lt;Vec&lt;_&gt;&gt;().join(&quot;\n&quot;),
-//             CommentBlock::new(&quot;tag_1&quot;.to_string()),
-//             Path::new(file_path),
-//         )
-//         .map_err(AppError::ParserError)
-//         {
-//             return Err(e);
-//         }
-//         Ok(())
-//     });
-//     if let Err(e) = handle.join() {
-//         return Err(AppError::CrossbeamError(anyhow!(&quot;{:?}&quot;, e)));
-//     }
-//     Ok(())
-// })
-// .map_err(|e| AppError::CrossbeamError(anyhow!(&quot;{:?}&quot;, e)))??;
-
-// thread::scope(|s| {
-//     s.spawn(|_| {
-//         log::info!(&quot;Updating git repo list in file {}&quot;, file_path);
-//         findrepl::replace_par(
-//             &amp;list.iter().map(fmt_markdown_list_item).collect::&lt;Vec&lt;_&gt;&gt;().join(&quot;\n&quot;),
-//             CommentBlock::new(&quot;tag_1&quot;.to_string()),
-//             Path::new(file_path),
-//         )
-//         .map_err(AppError::ParserError)
-//         .unwrap();
-//     })
-//     .join()
-//     .map_err(|e| AppError::CrossbeamError(anyhow!(&quot;{e:?}&quot;)))
-//     .unwrap()
-// })
-// .map_err(|e| AppError::CrossbeamError(anyhow!(&quot;{e:?}&quot;)))?;
-//
 </span></code></pre></div>
 </section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="dashboard" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (658fad6c5 2023-02-03)" data-search-js="search-98d53477a794af0b.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
