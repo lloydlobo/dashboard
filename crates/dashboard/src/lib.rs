@@ -100,19 +100,6 @@ pub mod app {
         Ok(())
     }
 
-    pub fn try_main_refactor_v2(file_path: &str) -> Result<(), AppError> {
-        let mut dashboard =
-            App { config: config::Config {}, db: DB { data: None, repo_list: None } };
-
-        GitCliOps::fetch_repos_write_data(&mut dashboard.db)?;
-
-        update_markdown_file(dashboard.db.data.as_ref(), file_path)?;
-
-        write_json_file(dashboard.db.data.as_ref(), file_path)?;
-
-        Ok(())
-    }
-
     fn write_json_file(data: Option<&Vec<GitRepo>>, file_path: &str) -> Result<(), AppError> {
         let path = util::replace_file_extension(file_path, "json");
 
@@ -131,110 +118,6 @@ pub mod app {
         log::info!("Writing git repo list to file {}", &path);
 
         serde_json::to_writer_pretty(file, data).map_err(AppError::SerdeError)
-    }
-
-    //------------------------------------------------------------------------------
-
-    pub fn try_main_refactor() -> Result<(), AppError> {
-        let mut dashboard =
-            App { config: config::Config {}, db: DB { data: None, repo_list: None } };
-
-        GitCliOps::fetch_repos_write_data(&mut dashboard.db)?;
-
-        thread::scope(|_| {
-            let list: Vec<_> = match dashboard.db.data.as_ref() {
-                Some(data) => data.iter().map(GitRepoListItem::new).collect(),
-                None => return Err(AppError::UnwrapError("Failed to find data".to_string())),
-            };
-
-            rayon::join(
-                || {
-                    log::info!("Updating git repo list in file {}", PATH_MD_OUTPUT);
-                    findrepl::replace_par(
-                        &list.iter().map(fmt_markdown_list_item).collect::<Vec<_>>().join("\n"),
-                        CommentBlock::new("tag_1".to_string()),
-                        Path::new(PATH_MD_OUTPUT),
-                    )
-                    .map_err(AppError::ParserError)
-                },
-                || dashboard.db.repo_list = Some(list.clone()),
-            )
-            .0
-        })
-        .map_err(|e| AppError::CrossbeamError(anyhow!("{e:?}")))??;
-
-        thread::scope(|_| {
-            let file = OpenOptions::new()
-                .read(true)
-                .write(true)
-                .create(true)
-                .open(PATH_JSON_GH_REPO_LIST)
-                .map_err(|e| AppError::Io(Arc::new(e)))?;
-            let data = match dashboard.db.data.as_ref() {
-                Some(data) => data,
-                None => return Err(AppError::UnwrapError("No data found".to_string())),
-            };
-
-            log::info!("Writing git repo list to file {}", PATH_JSON_GH_REPO_LIST);
-            serde_json::to_writer_pretty(file, data).map_err(AppError::SerdeError)
-        })
-        .map_err(|e| AppError::CrossbeamError(anyhow!("{e:?}")))??;
-
-        Ok(())
-    }
-
-    //------------------------------------------------------------------------------
-
-    fn try_main() -> Result<(), AppError> {
-        let mut dashboard =
-            App { config: config::Config {}, db: DB { data: None, repo_list: None } };
-
-        dashboard.db.fetch_repos_write_data()?;
-
-        crossbeam::scope(|_| {
-            let list: Vec<_> = dashboard
-                .db
-                .data
-                .as_ref()
-                .ok_or_else(|| AppError::LogicBug(anyhow!("Failed to find data").to_string()))
-                .unwrap()
-                .iter()
-                .map(GitRepoListItem::new)
-                .collect();
-            rayon::join(
-                || {
-                    let text =
-                        list.iter().map(fmt_markdown_list_item).collect::<Vec<_>>().join("\n");
-                    findrepl::replace_par(
-                        &text,
-                        CommentBlock::new("tag_1".to_string()),
-                        Path::new(PATH_MD_OUTPUT),
-                    )
-                    .map_err(AppError::ParserError)
-                    .unwrap()
-                },
-                || dashboard.db.repo_list = Some(list.clone()),
-            );
-        })
-        .unwrap();
-
-        {
-            let file: File = OpenOptions::new()
-                .read(true)
-                .write(true)
-                .create(true)
-                .open(PATH_JSON_GH_REPO_LIST)
-                .map_err(|e| AppError::Io(Arc::new(e)))?;
-            let data: &Vec<GitRepo> = dashboard
-                .db
-                .data
-                .as_ref()
-                .ok_or_else(|| AppError::UnwrapError("No data found".to_string()))?;
-            serde_json::to_writer_pretty(file, data).map_err(AppError::SerdeError).unwrap();
-            log::info!("Wrote git repo list to file {}", PATH_JSON_GH_REPO_LIST);
-        }
-
-        Ok(())
     }
 
     /// Create and format a new markdown list item with repo name, url and its description.
@@ -538,6 +421,137 @@ pub(crate) mod config {
 
 //------------------------------------------------------------------------------
 
+pub(crate) mod archive {
+    #![allow(dead_code)]
+
+    use std::{
+        fs::{File, OpenOptions},
+        path::Path,
+        sync::Arc,
+    };
+
+    use anyhow::anyhow;
+    use crossbeam::thread;
+    use parser::findrepl::{self, CommentBlock};
+
+    use crate::{
+        app::{fmt_markdown_list_item, App, AppError},
+        config,
+        constant::{PATH_JSON_GH_REPO_LIST, PATH_MD_OUTPUT},
+        db::DB,
+        gh::{GitCliOps, GitRepo, GitRepoListItem},
+    };
+
+    // pub fn try_main_refactor_v2(file_path: &str) -> Result<(), AppError> {
+    //     let mut dashboard =
+    //         App { config: config::Config {}, db: DB { data: None, repo_list: None } };
+    //     GitCliOps::fetch_repos_write_data(&mut dashboard.db)?;
+    //     update_markdown_file(dashboard.db.data.as_ref(), file_path)?;
+    //     write_json_file(dashboard.db.data.as_ref(), file_path)?;
+    //     Ok(())
+    // }
+
+    pub fn try_main_refactor() -> Result<(), AppError> {
+        let mut dashboard =
+            App { config: config::Config {}, db: DB { data: None, repo_list: None } };
+
+        GitCliOps::fetch_repos_write_data(&mut dashboard.db)?;
+
+        thread::scope(|_| {
+            let list: Vec<_> = match dashboard.db.data.as_ref() {
+                Some(data) => data.iter().map(GitRepoListItem::new).collect(),
+                None => return Err(AppError::UnwrapError("Failed to find data".to_string())),
+            };
+
+            rayon::join(
+                || {
+                    log::info!("Updating git repo list in file {}", PATH_MD_OUTPUT);
+                    findrepl::replace_par(
+                        &list.iter().map(fmt_markdown_list_item).collect::<Vec<_>>().join("\n"),
+                        CommentBlock::new("tag_1".to_string()),
+                        Path::new(PATH_MD_OUTPUT),
+                    )
+                    .map_err(AppError::ParserError)
+                },
+                || dashboard.db.repo_list = Some(list.clone()),
+            )
+            .0
+        })
+        .map_err(|e| AppError::CrossbeamError(anyhow!("{e:?}")))??;
+
+        thread::scope(|_| {
+            let file = OpenOptions::new()
+                .read(true)
+                .write(true)
+                .create(true)
+                .open(PATH_JSON_GH_REPO_LIST)
+                .map_err(|e| AppError::Io(Arc::new(e)))?;
+            let data = match dashboard.db.data.as_ref() {
+                Some(data) => data,
+                None => return Err(AppError::UnwrapError("No data found".to_string())),
+            };
+
+            log::info!("Writing git repo list to file {}", PATH_JSON_GH_REPO_LIST);
+            serde_json::to_writer_pretty(file, data).map_err(AppError::SerdeError)
+        })
+        .map_err(|e| AppError::CrossbeamError(anyhow!("{e:?}")))??;
+
+        Ok(())
+    }
+
+    pub(crate) fn try_main() -> Result<(), AppError> {
+        let mut dashboard =
+            App { config: config::Config {}, db: DB { data: None, repo_list: None } };
+
+        dashboard.db.fetch_repos_write_data()?;
+
+        crossbeam::scope(|_| {
+            let list: Vec<_> = dashboard
+                .db
+                .data
+                .as_ref()
+                .ok_or_else(|| AppError::LogicBug(anyhow!("Failed to find data").to_string()))
+                .unwrap()
+                .iter()
+                .map(GitRepoListItem::new)
+                .collect();
+            rayon::join(
+                || {
+                    let text =
+                        list.iter().map(fmt_markdown_list_item).collect::<Vec<_>>().join("\n");
+                    findrepl::replace_par(
+                        &text,
+                        CommentBlock::new("tag_1".to_string()),
+                        Path::new(PATH_MD_OUTPUT),
+                    )
+                    .map_err(AppError::ParserError)
+                    .unwrap()
+                },
+                || dashboard.db.repo_list = Some(list.clone()),
+            );
+        })
+        .unwrap();
+
+        {
+            let file: File = OpenOptions::new()
+                .read(true)
+                .write(true)
+                .create(true)
+                .open(PATH_JSON_GH_REPO_LIST)
+                .map_err(|e| AppError::Io(Arc::new(e)))?;
+            let data: &Vec<GitRepo> = dashboard
+                .db
+                .data
+                .as_ref()
+                .ok_or_else(|| AppError::UnwrapError("No data found".to_string()))?;
+            serde_json::to_writer_pretty(file, data).map_err(AppError::SerdeError).unwrap();
+            log::info!("Wrote git repo list to file {}", PATH_JSON_GH_REPO_LIST);
+        }
+
+        Ok(())
+    }
+}
+
 // mod pretty_error {
 //
 //     use miette::prelude::*;
@@ -582,42 +596,3 @@ pub(crate) mod config {
 // }
 
 //------------------------------------------------------------------------------
-
-// thread::scope(|s| {
-//     let handle = s.spawn(|_| {
-//         log::info!("Updating git repo list in file {}", file_path);
-//         if let Err(e) = findrepl::replace_par(
-//             &list.iter().map(fmt_markdown_list_item).collect::<Vec<_>>().join("\n"),
-//             CommentBlock::new("tag_1".to_string()),
-//             Path::new(file_path),
-//         )
-//         .map_err(AppError::ParserError)
-//         {
-//             return Err(e);
-//         }
-//         Ok(())
-//     });
-//     if let Err(e) = handle.join() {
-//         return Err(AppError::CrossbeamError(anyhow!("{:?}", e)));
-//     }
-//     Ok(())
-// })
-// .map_err(|e| AppError::CrossbeamError(anyhow!("{:?}", e)))??;
-
-// thread::scope(|s| {
-//     s.spawn(|_| {
-//         log::info!("Updating git repo list in file {}", file_path);
-//         findrepl::replace_par(
-//             &list.iter().map(fmt_markdown_list_item).collect::<Vec<_>>().join("\n"),
-//             CommentBlock::new("tag_1".to_string()),
-//             Path::new(file_path),
-//         )
-//         .map_err(AppError::ParserError)
-//         .unwrap();
-//     })
-//     .join()
-//     .map_err(|e| AppError::CrossbeamError(anyhow!("{e:?}")))
-//     .unwrap()
-// })
-// .map_err(|e| AppError::CrossbeamError(anyhow!("{e:?}")))?;
-//

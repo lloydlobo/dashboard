@@ -13,7 +13,6 @@
 use std::time::Instant;
 
 use criterion::{black_box, criterion_group, criterion_main, BatchSize, Criterion};
-use dashboard::app::*;
 use lazy_static::lazy_static;
 
 lazy_static! {
@@ -24,7 +23,7 @@ fn bench_try_main_ref(c: &mut Criterion) {
     let id = format!("{}_ref", *TRY_MAIN_REFACTOR);
     c.bench_function(&id, |b| {
         b.iter(|| {
-            let _ = black_box(dashboard::app::try_main_refactor());
+            let _ = black_box(dashboard::app::try_main_refactor_v3("README.md"));
         })
     });
 }
@@ -35,7 +34,7 @@ fn bench_try_main_ref_batchsize(c: &mut Criterion) {
         b.iter_batched(
             || (),
             |_| {
-                let _ = black_box(try_main_refactor());
+                let _ = black_box(dashboard::app::try_main_refactor_v3("README.md"));
             },
             BatchSize::SmallInput,
         );
@@ -50,7 +49,7 @@ fn bench_try_main_ref_iter_custom(c: &mut Criterion) {
         b.iter_custom(|iters: u64| {
             let start = Instant::now();
             for _i in 0..iters {
-                let _ = black_box(try_main_refactor());
+                let _ = black_box(dashboard::app::try_main_refactor_v3("README.md"));
                 // black_box(try_main_refactor().expect( "Should run function and return Duration
                 // due to `iter_custom` benchmarking",));
             }
