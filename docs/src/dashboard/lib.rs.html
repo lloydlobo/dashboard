@@ -596,7 +596,73 @@
 <a href="#596" id="596">596</a>
 <a href="#597" id="597">597</a>
 <a href="#598" id="598">598</a>
-</pre><pre class="rust"><code><span class="doccomment">//! TODO:
+<a href="#599" id="599">599</a>
+<a href="#600" id="600">600</a>
+<a href="#601" id="601">601</a>
+<a href="#602" id="602">602</a>
+<a href="#603" id="603">603</a>
+<a href="#604" id="604">604</a>
+<a href="#605" id="605">605</a>
+<a href="#606" id="606">606</a>
+<a href="#607" id="607">607</a>
+<a href="#608" id="608">608</a>
+<a href="#609" id="609">609</a>
+<a href="#610" id="610">610</a>
+<a href="#611" id="611">611</a>
+<a href="#612" id="612">612</a>
+<a href="#613" id="613">613</a>
+<a href="#614" id="614">614</a>
+<a href="#615" id="615">615</a>
+<a href="#616" id="616">616</a>
+<a href="#617" id="617">617</a>
+<a href="#618" id="618">618</a>
+<a href="#619" id="619">619</a>
+<a href="#620" id="620">620</a>
+<a href="#621" id="621">621</a>
+<a href="#622" id="622">622</a>
+<a href="#623" id="623">623</a>
+<a href="#624" id="624">624</a>
+<a href="#625" id="625">625</a>
+<a href="#626" id="626">626</a>
+<a href="#627" id="627">627</a>
+<a href="#628" id="628">628</a>
+<a href="#629" id="629">629</a>
+</pre><pre class="rust"><code><span class="doccomment">//! # dashboard
+//!
+//! `dashboard` is list of &quot;GitHub Actions build status&quot; of all the repos under my account, for my
+//! own use.
+//!
+//! ## Usage
+//!
+//! Add this to your markdown file:
+//!
+//! ```md
+//! &lt;!--START_SECTION:dashboard--&gt;
+//! &lt;!--END_SECTION:dashboard--&gt;
+//! ```
+//! ## Development
+//!
+//! ### Usage
+//!
+//! ```sh
+//! $ CARGO_LOG=error cargo r -p dashboard
+//! ```
+//!
+//! ### Data - Github API
+//!
+//! Output of Github CLI command `gh repo list` is serialized to `gh_repo_list.json`
+//!
+//! ### Parsed API - Markdown
+//!
+//! The detail of each git repository is appended as a list item to `README.md`:
+//!
+//! ```md
+//! * [name](url) — description
+//! ```
+//!
+//! * `name` - Repository name
+//! * `url` - Repository URL
+//! * `description` - Description of the repository
 
 </span><span class="comment">//------------------------------------------------------------------------------
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>constant {
@@ -633,11 +699,7 @@
 
 <span class="kw">pub mod </span>app {
     <span class="doccomment">//! `app` module contains `App` which contains prelude for all modules in this crate.
-    </span><span class="kw">use </span>std::{
-        fs::{OpenOptions},
-        path::Path,
-        sync::Arc,
-    };
+    </span><span class="kw">use </span>std::{fs::OpenOptions, path::Path, sync::Arc};
 
     <span class="kw">use </span>anyhow::anyhow;
     <span class="kw">use </span>crossbeam::thread;
@@ -646,7 +708,7 @@
 
     <span class="kw">use crate</span>::{
         config,
-        constant::{DESC_WC},
+        constant::DESC_WC,
         db::DB,
         gh::{GitCliOps, GitRepo, GitRepoListItem},
         util,
