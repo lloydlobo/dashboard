@@ -8,7 +8,7 @@ pub mod config {
 }
 
 //------------------------------------------------------------------------------
-pub mod constant {
+pub(crate) mod constant {
     //! TODO:
 
     #[allow(dead_code)]
@@ -220,32 +220,36 @@ pub mod app {
         /// An error occurred while performing an I/O operation across channels with crossbeam.
         #[error("Crossbeam I/O error: {0}")]
         CrossbeamError(#[from] anyhow::Error),
-        /*
-        The error trait from the serde_json crate would suffice. When you serialize or deserialize data using the serde_json library, the errors that may occur are related to JSON format
-        specifically. These errors are captured by the serde_json::Error type. In contrast, the serde crate provides a more generic mechanism for serialization and deserialization of data, and
-        its error type is serde::ser::Error. If you are only dealing with JSON data, it is best to use the serde_json crate and handle serde_json::Error errors. , if you're using the toml
-        crate, you could wrap a toml::de::Error in your custom error enum , and return that in the case of a serialization or deserialization error. If using the ron , crate, you would wrap ron::de::Error
-
-        TODO:
-            /// An error occurred using the anyhow library
-            #[error("Anyhow error: {0}")]
-            AnyhowError(#[from] anyhow::Error),
-            /// An error occurred with Github Actions or CI workflows
-            #[error("CI/CD error")]
-            CiCdError(String),
-            /// An error occurred while processing the GitHub Actions workflow or CI cron job.
-            #[error("GitHub Actions/CI error: {0}")]
-            GithubActionsCi(String),
-            /// An error occurred while fetching the GitHub CLI response.
-            #[error("GitHub CLI error: {0}")]
-            Reqwest(#[from] reqwest::Error),
-        */
+        // The error trait from the serde_json crate would suffice. When you serialize or
+        // deserialize data using the serde_json library, the errors that may occur are related to
+        // JSON format specifically. These errors are captured by the serde_json::Error type. In
+        // contrast, the serde crate provides a more generic mechanism for serialization and
+        // deserialization of data, and its error type is serde::ser::Error. If you are only
+        // dealing with JSON data, it is best to use the serde_json crate and handle
+        // serde_json::Error errors. , if you're using the toml crate, you could wrap a
+        // toml::de::Error in your custom error enum , and return that in the case of a
+        // serialization or deserialization error. If using the ron , crate, you would wrap
+        // ron::de::Error
+        //
+        // TODO:
+        // /// An error occurred using the anyhow library
+        // #[error("Anyhow error: {0}")]
+        // AnyhowError(#[from] anyhow::Error),
+        // /// An error occurred with Github Actions or CI workflows
+        // #[error("CI/CD error")]
+        // CiCdError(String),
+        // /// Error while processing the GitHub Actions workflow or CI cron job.
+        // #[error("GitHub Actions/CI error: {0}")]
+        // GithubActionsCi(String),
+        // /// An error occurred while fetching the GitHub CLI response.
+        // #[error("GitHub CLI error: {0}")]
+        // Reqwest(#[from] reqwest::Error),
     }
 }
 
 //------------------------------------------------------------------------------
 
-pub mod db {
+pub(crate) mod db {
 
     use serde::{Deserialize, Serialize};
     use xshell::{cmd, Shell};
@@ -295,7 +299,7 @@ pub mod db {
 
 //------------------------------------------------------------------------------
 
-pub mod gh {
+pub(crate) mod gh {
     use serde::{Deserialize, Serialize};
 
     use crate::app::AppError;
@@ -348,9 +352,6 @@ pub mod gh {
         /// Use GitHub CLI `gh utility` in `xshell` to fetch list of repositories and,
         /// mutate `self.data` to the json `response` of [`Vec<GitRepo>`].
         ///
-        /// * `xshell::Shell` - doesn't use the shell directly, but rather re-implements parts of
-        ///   scripting environment in Rust.
-        ///
         /// # Errors
         ///
         /// This function will return an error if:
@@ -359,6 +360,11 @@ pub mod gh {
         /// * [`xshell::cmd!`] - on `read` returns a non-zero return code considered to be an error.
         /// * [`serde_json`] - conversion can fail if the structure of the input does not match the
         ///   structure expected by `Vec<GitRepo>`.
+        ///
+        /// # NOTE
+        ///
+        /// `xshell::Shell` - doesn't use the shell directly, but rather re-implements parts of
+        /// scripting environment in Rust.
         fn fetch_repos_write_data(&mut self) -> Result<(), AppError>;
     }
 }
