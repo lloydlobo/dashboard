@@ -42,30 +42,17 @@ fn bench_try_main_ref_batchsize(c: &mut Criterion) {
     });
 }
 
-// FIXME: Failing.
-//
-// ```sh
-// Benchmarking try_main_refactor: Warming up for 3.0000 sthread 'main' panicked at 'called
-// `Result::unwrap()` on an `Err` value: Parsing(RegexError(Syntax(
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// start marker not found
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// )))', crates/dashboard/../dashboard/benches/benchmark.rs:38:47
-// ```
+// Custom, the timing model is whatever is returned as the Duration from `routine`.
 #[allow(clippy::all)]
 fn bench_try_main_ref_iter_custom(c: &mut Criterion) {
     let id = format!("{}_ref_iter_custom", *TRY_MAIN_REFACTOR);
     c.bench_function(&id, move |b| {
-        b.iter_custom(|iters| {
+        b.iter_custom(|iters: u64| {
             let start = Instant::now();
             for _i in 0..iters {
-                black_box(try_main_refactor().expect(
-                    "Should run function and return Duration due to `iter_custom` benchmarking",
-                ));
-                // ERR: clippy optimizes to this???
-                //
-                // try_main_refactor().unwrap();
-                // black_box(());
+                let _ = black_box(try_main_refactor());
+                // black_box(try_main_refactor().expect( "Should run function and return Duration
+                // due to `iter_custom` benchmarking",));
             }
             start.elapsed()
         })
@@ -76,7 +63,7 @@ criterion_group!(
     benches,
     bench_try_main_ref,
     bench_try_main_ref_batchsize,
-    // bench_try_main_ref_iter_custom
+    bench_try_main_ref_iter_custom,
 );
 criterion_main!(benches);
 

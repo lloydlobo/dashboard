@@ -1,12 +1,5 @@
 //! TODO:
 
-pub(crate) mod config {
-    use serde::{Deserialize, Serialize};
-
-    #[derive(Clone, Debug, Deserialize, Serialize)]
-    pub struct Config {}
-}
-
 //------------------------------------------------------------------------------
 pub(crate) mod constant {
     //! TODO:
@@ -35,6 +28,9 @@ pub(crate) mod constant {
         "updatedAt",
         "url",
     ];
+
+    /// Word count limit for description.
+    pub(crate) const DESC_WC: usize = 60;
 }
 
 pub mod app {
@@ -52,19 +48,92 @@ pub mod app {
 
     use crate::{
         config,
-        constant::{PATH_JSON_GH_REPO_LIST, PATH_MD_OUTPUT},
+        constant::{DESC_WC, PATH_JSON_GH_REPO_LIST, PATH_MD_OUTPUT},
         db::DB,
         gh::{GitCliOps, GitRepo, GitRepoListItem},
+        util,
     };
 
-    /// Word count limit for description.
-    pub const DESC_WC: usize = 60;
+    /// `Result<T, E>`
+    ///
+    /// This is a reasonable return type to use throughout your application but also
+    /// for `fn main`; if you do, failures will be printed along with any
+    /// [context](https://docs.rs/anyhow/1.0.69/anyhow/trait.Context.html) and a backtrace if one was captured.
+    pub type Result<T, E> = anyhow::Result<T, E>;
 
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct App {
         pub(crate) config: config::Config,
         pub(crate) db: DB,
     }
+
+    pub fn try_main_refactor_v3(file_path: &str) -> Result<(), AppError> {
+        let mut dashboard =
+            App { config: config::Config {}, db: DB { data: None, repo_list: None } };
+
+        GitCliOps::fetch_repos_write_data(&mut dashboard.db)?;
+
+        // Spawning the two operations into separate threads for parallel execution
+        thread::scope(|s| {
+            s.spawn(|_| update_markdown_file(dashboard.db.data.as_ref(), file_path));
+            s.spawn(|_| write_json_file(dashboard.db.data.as_ref(), file_path));
+        }) // PERF: Learn to handle error of type: `e: Box<dyn Any + Send>`.
+        .map_err(|e| AppError::CrossbeamError(anyhow!("{:?}", e)))?;
+
+        Ok(())
+    }
+
+    fn update_markdown_file(data: Option<&Vec<GitRepo>>, file_path: &str) -> Result<(), AppError> {
+        // If data is Some, convert `Vec<GitRepo>` into a list of GitRepoListItem.
+        let list = match data {
+            Some(data) => data.iter().map(GitRepoListItem::new).collect::<Vec<_>>(),
+            None => return Err(AppError::UnwrapError("Failed to find data".to_string())),
+        };
+
+        let (text, block) = rayon::join(
+            || list.iter().map(fmt_markdown_list_item).collect::<Vec<_>>().join("\n"),
+            || CommentBlock::new("tag_1".to_string()),
+        );
+        findrepl::replace_par(&text, block, Path::new(file_path)).map_err(AppError::ParserError)?;
+        log::info!("Updated git repo list in file {}", file_path);
+
+        Ok(())
+    }
+
+    pub fn try_main_refactor_v2(file_path: &str) -> Result<(), AppError> {
+        let mut dashboard =
+            App { config: config::Config {}, db: DB { data: None, repo_list: None } };
+
+        GitCliOps::fetch_repos_write_data(&mut dashboard.db)?;
+
+        update_markdown_file(dashboard.db.data.as_ref(), file_path)?;
+
+        write_json_file(dashboard.db.data.as_ref(), file_path)?;
+
+        Ok(())
+    }
+
+    fn write_json_file(data: Option<&Vec<GitRepo>>, file_path: &str) -> Result<(), AppError> {
+        let path = util::replace_file_extension(file_path, "json");
+
+        let file = OpenOptions::new()
+            .read(true)
+            .write(true)
+            .create(true)
+            .open(&path)
+            .map_err(|e| AppError::Io(Arc::new(e)))?;
+
+        let data = match data {
+            Some(data) => data,
+            None => return Err(AppError::UnwrapError("No data found".to_string())),
+        };
+
+        log::info!("Writing git repo list to file {}", &path);
+
+        serde_json::to_writer_pretty(file, data).map_err(AppError::SerdeError)
+    }
+
+    //------------------------------------------------------------------------------
 
     pub fn try_main_refactor() -> Result<(), AppError> {
         let mut dashboard =
@@ -86,7 +155,7 @@ pub mod app {
                         CommentBlock::new("tag_1".to_string()),
                         Path::new(PATH_MD_OUTPUT),
                     )
-                    .map_err(AppError::Parsing)
+                    .map_err(AppError::ParserError)
                 },
                 || dashboard.db.repo_list = Some(list.clone()),
             )
@@ -114,6 +183,8 @@ pub mod app {
         Ok(())
     }
 
+    //------------------------------------------------------------------------------
+
     fn try_main() -> Result<(), AppError> {
         let mut dashboard =
             App { config: config::Config {}, db: DB { data: None, repo_list: None } };
@@ -139,7 +210,7 @@ pub mod app {
                         CommentBlock::new("tag_1".to_string()),
                         Path::new(PATH_MD_OUTPUT),
                     )
-                    .map_err(AppError::Parsing)
+                    .map_err(AppError::ParserError)
                     .unwrap()
                 },
                 || dashboard.db.repo_list = Some(list.clone()),
@@ -179,13 +250,6 @@ pub mod app {
         }
     }
 
-    /// `Result<T, E>`
-    ///
-    /// This is a reasonable return type to use throughout your application but also
-    /// for `fn main`; if you do, failures will be printed along with any
-    /// [context](https://docs.rs/anyhow/1.0.69/anyhow/trait.Context.html) and a backtrace if one was captured.
-    pub type Result<T, E> = anyhow::Result<T, E>;
-
     /// `AppError`
     //
     /// Instead of cloning the `std::io::Error`, we can store the error within the `AppError`
@@ -201,7 +265,10 @@ pub mod app {
         LogicBug(String),
         /// An error occurred while parsing input
         #[error("Parsing error: {0}")]
-        Parsing(#[from] parser::ParserError),
+        ParserError(#[from] parser::ParserError),
+        /// An error occurred in parser crate.
+        #[error("parser package I/O error: {0}")]
+        FindReplaceError(parser::ParserError),
         /// An error occurred with a regular expression
         #[error("Regex error")]
         RegexError(#[from] regex::Error),
@@ -369,6 +436,106 @@ pub(crate) mod gh {
     }
 }
 
+pub(crate) mod util {
+    #![allow(dead_code)]
+
+    //! Common utility functions and items. YAGNI!
+    //!
+    //! # Find and replace file extensions:
+    //!
+    //! In general, file stem methods would be more efficient in cases where the goal is to simply
+    //! extract a portion of the file name and modify it. This is because the file_stem and
+    //! set_file_stem methods are designed specifically for this purpose, and can handle it with
+    //! minimal overhead.
+    //!
+    //! However, if the goal is to manipulate the file name in a more complex way, such as replacing
+    //! a specific substring or splitting the name into multiple components, then regex might be a
+    //! better choice. Regular expressions are more flexible and allow for more complex string
+    //! manipulations, but they can also be more computationally expensive and require more code to
+    //! implement.
+
+    use std::path::Path;
+
+    use regex::Regex;
+
+    /// `replace_file_extension`
+    ///
+    /// In this function, we first create a Path from the file_path. Then, we get the file stem of
+    /// the path using file_stem() and convert it to a &str using to_str(). Finally, we return a
+    /// new String created using the format! macro that consists of the stem, a dot (.), and the
+    /// new_extension.
+    pub(crate) fn replace_file_extension(file_path: &str, new_extension: &str) -> String {
+        let path = Path::new(file_path);
+        let stem = path.file_stem().unwrap().to_str().unwrap();
+        let new_file_path = format!("{}.{}", stem, new_extension);
+        new_file_path
+    }
+
+    /// `replace_extension_regex`
+    ///
+    /// The regex crate is used in this example to define a regular expression that matches the file
+    /// extension in the given file_path. The Regex::new method creates a new Regex object from a
+    /// string pattern, and the replace method replaces the matched text with the new extension. The
+    /// result is then returned as a String.
+    /// In this regular expression, the (?i) flag makes the match case-insensitive, and \.[^./]+$
+    /// matches a dot followed by one or more characters that are not dots or slashes, until the end
+    /// of the string.
+    pub(crate) fn replace_extension_regex(file_path: &str, new_extension: &str) -> String {
+        let re = Regex::new(r"(?i)\.[^./]+$").unwrap();
+        re.replace(file_path, new_extension).to_string()
+    }
+
+    /* /// `FileExtension` provides two methods, to replace the file extension to a new `ext`, using
+        /// the `file_stem` method, and a `regex` regular expression.
+        pub trait FileExtension {
+            /// ```rust
+            /// use std::path::Path;
+            ///
+            /// use crate::dashboard::util::FileExtension;
+            ///
+            /// let path = Path::new("file.md");
+            /// let new_file_path = path.replace_file_extension_with_file_stem("file.txt", "new");
+            /// assert_eq!("file.txt", new_file_path);
+            /// ```
+            fn replace_file_extension_with_file_stem(&self, path: &str, ext: &str) -> String;
+
+            /// ```rust
+            /// use std::path::Path;
+            ///
+            /// use crate::dashboard::util::FileExtension;
+            ///
+            /// let path = Path::new("file.md");
+            /// let new_file_path = path.replace_file_extension_with_regex("file.txt", "new");
+            /// println!("{}", new_file_path);
+            /// ```
+            fn replace_file_extension_with_regex(&self, path: &str, extension: &str) -> String;
+        }
+
+        impl FileExtension for Path {
+            fn replace_file_extension_with_file_stem(&self, path: &str, ext: &str) -> String {
+                let path = Path::new(path);
+                let stem = path.file_stem().unwrap().to_str().unwrap();
+                let new_file_path = format!("{}.{}", stem, ext);
+                new_file_path
+            }
+
+            fn replace_file_extension_with_regex(&self, path: &str, ext: &str) -> String {
+                let re = Regex::new(r"(?i)\.[^./]+$").unwrap();
+                re.replace(path, ext).to_string()
+            }
+        }
+    */
+}
+
+//------------------------------------------------------------------------------
+
+pub(crate) mod config {
+    use serde::{Deserialize, Serialize};
+
+    #[derive(Clone, Debug, Deserialize, Serialize)]
+    pub struct Config {}
+}
+
 //------------------------------------------------------------------------------
 
 // mod pretty_error {
@@ -415,3 +582,42 @@ pub(crate) mod gh {
 // }
 
 //------------------------------------------------------------------------------
+
+// thread::scope(|s| {
+//     let handle = s.spawn(|_| {
+//         log::info!("Updating git repo list in file {}", file_path);
+//         if let Err(e) = findrepl::replace_par(
+//             &list.iter().map(fmt_markdown_list_item).collect::<Vec<_>>().join("\n"),
+//             CommentBlock::new("tag_1".to_string()),
+//             Path::new(file_path),
+//         )
+//         .map_err(AppError::ParserError)
+//         {
+//             return Err(e);
+//         }
+//         Ok(())
+//     });
+//     if let Err(e) = handle.join() {
+//         return Err(AppError::CrossbeamError(anyhow!("{:?}", e)));
+//     }
+//     Ok(())
+// })
+// .map_err(|e| AppError::CrossbeamError(anyhow!("{:?}", e)))??;
+
+// thread::scope(|s| {
+//     s.spawn(|_| {
+//         log::info!("Updating git repo list in file {}", file_path);
+//         findrepl::replace_par(
+//             &list.iter().map(fmt_markdown_list_item).collect::<Vec<_>>().join("\n"),
+//             CommentBlock::new("tag_1".to_string()),
+//             Path::new(file_path),
+//         )
+//         .map_err(AppError::ParserError)
+//         .unwrap();
+//     })
+//     .join()
+//     .map_err(|e| AppError::CrossbeamError(anyhow!("{e:?}")))
+//     .unwrap()
+// })
+// .map_err(|e| AppError::CrossbeamError(anyhow!("{e:?}")))?;
+//

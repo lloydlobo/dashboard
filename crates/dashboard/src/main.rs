@@ -61,7 +61,7 @@ pub fn main() -> app::Result<(), AppError> {
         .filter_level(log::LevelFilter::Debug)
         .init();
 
-    if let Err(e) = app::try_main_refactor() {
+    if let Err(e) = app::try_main_refactor_v3("README.md") {
         eprintln!("{}", anyhow!(e));
         std::process::exit(1)
     }
