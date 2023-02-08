@@ -41,8 +41,9 @@ use std::{
     sync::Arc,
 };
 
-use anyhow::anyhow;
+use anyhow::{anyhow, Context};
 use app::PATH_JSON_GH_REPO_LIST;
+use crossbeam::thread;
 use db::DB;
 use lazy_static::lazy_static;
 use parser::findrepl::{self, CommentBlock};
@@ -60,14 +61,81 @@ lazy_static! {
 //------------------------------------------------------------------------------
 
 pub fn main() -> app::Result<(), AppError> {
+    let start = std::time::Instant::now();
     pretty_env_logger::env_logger::builder()
         .filter_level(log::LevelFilter::Info)
         .filter_level(log::LevelFilter::Debug)
         .init();
-    if let Err(e) = try_main() {
+
+    if let Err(e) = try_main_refactor() {
         eprintln!("{}", anyhow!(e));
         std::process::exit(1)
     }
+
+    log::info!("Finished in {:#.2?}", start.elapsed());
+
+    Ok(())
+}
+
+// It seems that there are multiple issues with the code.
+//
+//     Type annotations needed: In line 83, the variable list is being inferred to have type Vec<_>,
+// but the type needs to be explicitly declared.
+//
+//     Mismatched types: The expression on line 95 is expected to return Result<_, AppError> but
+// instead returns (Result<(), AppError>, ()). To fix this, the expression should be wrapped in Ok.
+//
+//     No variant named CrossbeamError: The error message says that the variant CrossbeamError does
+// not exist for the AppError enum. You need to add this variant to the enum.
+//
+//     to_string method error: The error message says that the to_string method cannot be called on
+// Box<dyn Any + Send> because the required trait bounds were not satisfied. To fix this, you need
+// to ensure that the type of e in line 107 implements the ToString trait.
+fn try_main_refactor() -> Result<(), AppError> {
+    let mut dashboard =
+        app::App { config: config::Config {}, db: DB { data: None, repo_list: None } };
+
+    dashboard.db.fetch_repos_write_data()?;
+
+    thread::scope(|_| {
+        let list: Vec<_> = match dashboard.db.data.as_ref() {
+            Some(data) => data.iter().map(GitRepoListItem::new).collect(),
+            None => return Err(AppError::UnwrapError("Failed to find data".to_string())),
+        };
+
+        rayon::join(
+            || {
+                log::info!("Updating git repo list in file {}", PATH_MD_OUTPUT);
+                findrepl::replace_par(
+                    &list.iter().map(app::fmt_markdown_list_item).collect::<Vec<_>>().join("\n"),
+                    CommentBlock::new("tag_1".to_string()),
+                    Path::new(PATH_MD_OUTPUT),
+                )
+                .map_err(AppError::Parsing)
+            },
+            || dashboard.db.repo_list = Some(list.clone()),
+        )
+        .0
+    })
+    .map_err(|e| AppError::CrossbeamError(anyhow!("{e:?}")))??;
+
+    thread::scope(|_| {
+        let file = OpenOptions::new()
+            .read(true)
+            .write(true)
+            .create(true)
+            .open(PATH_JSON_GH_REPO_LIST)
+            .map_err(|e| AppError::Io(Arc::new(e)))?;
+        let data = match dashboard.db.data.as_ref() {
+            Some(data) => data,
+            None => return Err(AppError::UnwrapError("No data found".to_string())),
+        };
+
+        log::info!("Writing git repo list to file {}", PATH_JSON_GH_REPO_LIST);
+        serde_json::to_writer_pretty(file, data).map_err(AppError::SerdeError)
+    })
+    .map_err(|e| AppError::CrossbeamError(anyhow!("{e:?}")))??;
+
     Ok(())
 }
 
@@ -77,46 +145,50 @@ fn try_main() -> app::Result<(), AppError> {
 
     dashboard.db.fetch_repos_write_data()?;
 
-    let file: File = OpenOptions::new()
-        .read(true)
-        .write(true)
-        .create(true)
-        .open(PATH_JSON_GH_REPO_LIST)
-        .map_err(|e| AppError::Io(Arc::new(e)))?;
+    crossbeam::scope(|_| {
+        let list: Vec<_> = dashboard
+            .db
+            .data
+            .as_ref()
+            .ok_or_else(|| AppError::LogicBug(anyhow!("Failed to find data").to_string()))
+            .unwrap()
+            .iter()
+            .map(GitRepoListItem::new)
+            .collect();
+        rayon::join(
+            || {
+                let text =
+                    list.iter().map(app::fmt_markdown_list_item).collect::<Vec<_>>().join("\n");
+                findrepl::replace_par(
+                    &text,
+                    CommentBlock::new("tag_1".to_string()),
+                    Path::new(PATH_MD_OUTPUT),
+                )
+                .map_err(AppError::Parsing)
+                .unwrap()
+            },
+            || dashboard.db.repo_list = Some(list.clone()),
+        );
+    })
+    .unwrap();
 
-    let data: &Vec<GitRepo> = dashboard
-        .db
-        .data
-        .as_ref()
-        .ok_or_else(|| AppError::UnwrapError("No data found".to_string()))?;
-    serde_json::to_writer_pretty(file, data).map_err(AppError::SerdeError)?;
-    log::info!("Wrote git repo list to file {}", PATH_JSON_GH_REPO_LIST);
+    {
+        let file: File = OpenOptions::new()
+            .read(true)
+            .write(true)
+            .create(true)
+            .open(PATH_JSON_GH_REPO_LIST)
+            .map_err(|e| AppError::Io(Arc::new(e)))?;
+        let data: &Vec<GitRepo> = dashboard
+            .db
+            .data
+            .as_ref()
+            .ok_or_else(|| AppError::UnwrapError("No data found".to_string()))?;
+        serde_json::to_writer_pretty(file, data).map_err(AppError::SerdeError).unwrap();
+        log::info!("Wrote git repo list to file {}", PATH_JSON_GH_REPO_LIST);
+    }
 
-    let list: Vec<_> = dashboard
-        .db
-        .data
-        .ok_or_else(|| AppError::LogicBug(anyhow!("Failed to find data").to_string()))?
-        .iter()
-        .map(|repo| GitRepoListItem {
-            name: repo.name.to_string(),
-            url: repo.url.to_string(),
-            description: repo.description.to_string(),
-        })
-        .collect();
-    dashboard.db.repo_list = Some(list);
-
-    let text: String = dashboard
-        .db
-        .repo_list
-        .ok_or_else(|| AppError::LogicBug(anyhow!("Failed to find repo list").to_string()))?
-        .iter()
-        .map(app::fmt_markdown_list_item)
-        .collect::<Vec<_>>()
-        .join("\n");
-    let block = CommentBlock::new("tag_1".to_string());
-    let path = Path::new(PATH_MD_OUTPUT);
-    // findrepl::replace(&text, block, path).map_err(AppError::Parsing)
-    findrepl::replace_par(&text, block, path).map_err(AppError::Parsing)
+    Ok(())
 }
 
 //------------------------------------------------------------------------------
@@ -242,6 +314,9 @@ pub mod app {
         /// An error occurred while performing an I/O operation with the xshell terminal.
         #[error("Xshell I/O error: {0}")]
         XshellIo(#[from] xshell::Error),
+        /// An error occurred while performing an I/O operation across channels with crossbeam.
+        #[error("Crossbeam I/O error: {0}")]
+        CrossbeamError(#[from] anyhow::Error),
     }
 }
 
@@ -286,6 +361,7 @@ pub mod db {
             let repos_struct_de = serde_json::from_str::<Vec<GitRepo>>(&repos_json_ser)
                 .map_err(AppError::SerdeError)?;
             log::info!("Deserialized {} repositories", repos_struct_de.len());
+
             self.data = Some(repos_struct_de);
 
             Ok(())
@@ -327,6 +403,16 @@ pub mod gh {
         pub url: String,
         /// Description of the repository.
         pub description: String,
+    }
+
+    impl GitRepoListItem {
+        pub fn new(repo: &GitRepo) -> Self {
+            Self {
+                name: repo.name.clone(),
+                url: repo.url.clone(),
+                description: repo.description.clone(),
+            }
+        }
     }
 
     #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -397,3 +483,24 @@ pub mod gh {
 //         }
 //     }
 // }
+
+// crossbeam::scope(|_| {
+//     let list: Vec<_> = match dashboard.db.data.as_ref() {
+//         Some(data) => data.iter().map(GitRepoListItem::new).collect(),
+//         None => return Err(AppError::LogicBug(anyhow!("Failed to find data").to_string())),
+//     };
+//
+//     rayon::join(
+//         || {
+//             findrepl::replace_par(
+//                 &list.iter().map(app::fmt_markdown_list_item).collect::<Vec<_>>().join("\n"),
+//                 CommentBlock::new("tag_1".to_string()),
+//                 Path::new(PATH_MD_OUTPUT),
+//             )
+//             .map_err(AppError::Parsing)
+//         },
+//         || dashboard.db.repo_list = Some(list.clone()),
+//     )
+//     .0
+// })
+// .map_err(|e| AppError::CrossbeamError(anyhow!("{e:?}")))??;
