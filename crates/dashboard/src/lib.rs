@@ -63,6 +63,9 @@
 //! * `name` - Repository name
 //! * `url` - Repository URL
 //! * `description` - Description of the repository
+//------------------------------------------------------------------------------
+
+pub(crate) mod util;
 
 //------------------------------------------------------------------------------
 
@@ -394,6 +397,9 @@ pub(crate) mod gh {
         /// Use GitHub CLI `gh utility` in `xshell` to fetch list of repositories and,
         /// mutate `self.data` to the json `response` of [`Vec<GitRepo>`].
         ///
+        /// `xshell::Shell` - doesn't use the shell directly, but rather re-implements parts of
+        /// scripting environment in Rust.
+        ///
         /// # Errors
         ///
         /// This function will return an error if:
@@ -402,104 +408,8 @@ pub(crate) mod gh {
         /// * [`xshell::cmd!`] - on `read` returns a non-zero return code considered to be an error.
         /// * [`serde_json`] - conversion can fail if the structure of the input does not match the
         ///   structure expected by `Vec<GitRepo>`.
-        ///
-        /// # NOTE
-        ///
-        /// `xshell::Shell` - doesn't use the shell directly, but rather re-implements parts of
-        /// scripting environment in Rust.
         fn fetch_repos_write_data(&mut self) -> Result<(), AppError>;
     }
-}
-
-pub(crate) mod util {
-    #![allow(dead_code)]
-
-    //! Common utility functions and items. YAGNI!
-    //!
-    //! # Find and replace file extensions:
-    //!
-    //! In general, file stem methods would be more efficient in cases where the goal is to simply
-    //! extract a portion of the file name and modify it. This is because the file_stem and
-    //! set_file_stem methods are designed specifically for this purpose, and can handle it with
-    //! minimal overhead.
-    //!
-    //! However, if the goal is to manipulate the file name in a more complex way, such as replacing
-    //! a specific substring or splitting the name into multiple components, then regex might be a
-    //! better choice. Regular expressions are more flexible and allow for more complex string
-    //! manipulations, but they can also be more computationally expensive and require more code to
-    //! implement.
-
-    use std::path::Path;
-
-    use regex::Regex;
-
-    /// `replace_file_extension`
-    ///
-    /// In this function, we first create a Path from the file_path. Then, we get the file stem of
-    /// the path using file_stem() and convert it to a &str using to_str(). Finally, we return a
-    /// new String created using the format! macro that consists of the stem, a dot (.), and the
-    /// new_extension.
-    pub(crate) fn replace_file_extension(file_path: &str, new_extension: &str) -> String {
-        let path = Path::new(file_path);
-        let stem = path.file_stem().unwrap().to_str().unwrap();
-        let new_file_path = format!("{stem}.{new_extension}");
-        new_file_path
-    }
-
-    /// `replace_extension_regex`
-    ///
-    /// The regex crate is used in this example to define a regular expression that matches the file
-    /// extension in the given file_path. The Regex::new method creates a new Regex object from a
-    /// string pattern, and the replace method replaces the matched text with the new extension. The
-    /// result is then returned as a String.
-    /// In this regular expression, the (?i) flag makes the match case-insensitive, and \.[^./]+$
-    /// matches a dot followed by one or more characters that are not dots or slashes, until the end
-    /// of the string.
-    pub(crate) fn replace_extension_regex(file_path: &str, new_extension: &str) -> String {
-        let re = Regex::new(r"(?i)\.[^./]+$").unwrap();
-        re.replace(file_path, new_extension).to_string()
-    }
-
-    /* /// `FileExtension` provides two methods, to replace the file extension to a new `ext`, using
-        /// the `file_stem` method, and a `regex` regular expression.
-        pub trait FileExtension {
-            /// ```rust
-            /// use std::path::Path;
-            ///
-            /// use crate::dashboard::util::FileExtension;
-            ///
-            /// let path = Path::new("file.md");
-            /// let new_file_path = path.replace_file_extension_with_file_stem("file.txt", "new");
-            /// assert_eq!("file.txt", new_file_path);
-            /// ```
-            fn replace_file_extension_with_file_stem(&self, path: &str, ext: &str) -> String;
-
-            /// ```rust
-            /// use std::path::Path;
-            ///
-            /// use crate::dashboard::util::FileExtension;
-            ///
-            /// let path = Path::new("file.md");
-            /// let new_file_path = path.replace_file_extension_with_regex("file.txt", "new");
-            /// println!("{}", new_file_path);
-            /// ```
-            fn replace_file_extension_with_regex(&self, path: &str, extension: &str) -> String;
-        }
-
-        impl FileExtension for Path {
-            fn replace_file_extension_with_file_stem(&self, path: &str, ext: &str) -> String {
-                let path = Path::new(path);
-                let stem = path.file_stem().unwrap().to_str().unwrap();
-                let new_file_path = format!("{}.{}", stem, ext);
-                new_file_path
-            }
-
-            fn replace_file_extension_with_regex(&self, path: &str, ext: &str) -> String {
-                let re = Regex::new(r"(?i)\.[^./]+$").unwrap();
-                re.replace(path, ext).to_string()
-            }
-        }
-    */
 }
 
 //------------------------------------------------------------------------------
