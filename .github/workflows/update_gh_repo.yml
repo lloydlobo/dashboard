@@ -1,4 +1,4 @@
-name: Schedule bin dashboard updating README.md
+name: update gh repo
 on:
   schedule:
     # * is a special character in YAML so you have to quote this string
