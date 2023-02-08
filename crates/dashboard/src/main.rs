@@ -35,13 +35,15 @@
 //! * `url` - Repository URL
 //! * `description` - Description of the repository
 
+// #![deny(missing_debug_implementations, missing_docs)]
+
 use std::{
     fs::{File, OpenOptions},
     path::Path,
     sync::Arc,
 };
 
-use anyhow::{anyhow, Context};
+use anyhow::anyhow;
 use app::PATH_JSON_GH_REPO_LIST;
 use crossbeam::thread;
 use db::DB;
@@ -60,6 +62,11 @@ lazy_static! {
 
 //------------------------------------------------------------------------------
 
+/// `main` entrypoint.
+///
+/// # Errors
+///
+/// This function will return an error if .
 pub fn main() -> app::Result<(), AppError> {
     let start = std::time::Instant::now();
     pretty_env_logger::env_logger::builder()
