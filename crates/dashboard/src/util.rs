@@ -74,10 +74,23 @@ mod tests {
     }
 
     #[test]
-    fn should_generate_random_data() {
+    fn should_rep_ext_regex() {
         fn prop(text: OnlyLowercaseLetters) -> bool {
             let got = format!("filename.{}", text.0);
             let got = replace_extension_regex(&got, "md");
+            let expect = "filename.md";
+            assert_eq!(got, expect);
+            got.contains(expect)
+        }
+
+        quickcheck(prop as fn(OnlyLowercaseLetters) -> bool);
+    }
+
+    #[test]
+    fn should_rep_ext_file_stem() {
+        fn prop(text: OnlyLowercaseLetters) -> bool {
+            let got = format!("filename.{}", text.0);
+            let got = replace_file_extension(&got, "md");
             let expect = "filename.md";
             assert_eq!(got, expect);
             got.contains(expect)
