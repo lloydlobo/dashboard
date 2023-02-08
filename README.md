@@ -1,5 +1,8 @@
 # dashboard
 
+[![documentation status](https://github.com/lloydlobo/dashboard/actions/workflows/rustdoc.yml/badge.svg)](https://github.com/lloydlobo/dashboard/actions/workflows/rustdoc.yml)
+
+
 This is a dashboard to display all projects.
 
 <!--START_SECTION:tag_1-->
