@@ -52,13 +52,20 @@ fn bench_try_main_ref_batchsize(c: &mut Criterion) {
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // )))', crates/dashboard/../dashboard/benches/benchmark.rs:38:47
 // ```
+#[allow(clippy::all)]
 fn bench_try_main_ref_iter_custom(c: &mut Criterion) {
     let id = format!("{}_ref_iter_custom", *TRY_MAIN_REFACTOR);
     c.bench_function(&id, move |b| {
         b.iter_custom(|iters| {
             let start = Instant::now();
             for _i in 0..iters {
-                black_box(try_main_refactor().unwrap());
+                black_box(try_main_refactor().expect(
+                    "Should run function and return Duration due to `iter_custom` benchmarking",
+                ));
+                // ERR: clippy optimizes to this???
+                //
+                // try_main_refactor().unwrap();
+                // black_box(());
             }
             start.elapsed()
         })

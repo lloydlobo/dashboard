@@ -183,6 +183,11 @@
 <a href="#183" id="183">183</a>
 <a href="#184" id="184">184</a>
 <a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Code utilized and modified from [matklad/cargo-xtask](https://github.com/matklad/cargo-xtask/blob/master/examples/hello-world/xtask/src/main.rs)
 
 </span><span class="kw">use </span>std::{
@@ -286,8 +291,10 @@ ARGS:
 }
 
 <span class="kw">fn </span>run_dist_doc() -&gt; <span class="prelude-ty">Result</span>&lt;(), DynError&gt; {
-    <span class="kw">let _ </span>= fs::remove_dir_all(dir_docs());
-    dist_doc_xtask()<span class="question-mark">?</span>;
+    {
+        <span class="kw">let _ </span>= fs::remove_dir_all(dir_docs());
+        dist_doc_xtask()<span class="question-mark">?</span>;
+    }
     <span class="prelude-val">Ok</span>(())
 }
 
@@ -309,28 +316,31 @@ ARGS:
     <span class="kw">let </span>cargo: String = env::var(<span class="string">&quot;CARGO&quot;</span>).unwrap_or_else(|<span class="kw">_</span>| <span class="string">&quot;cargo&quot;</span>.to_string());
     <span class="kw">let </span>status: ExitStatus = Command::new(cargo)
         .current_dir(project_root())
-        .args([<span class="string">&quot;doc&quot;</span>, <span class="string">&quot;--release&quot;</span>, <span class="string">&quot;--no-deps&quot;</span>, <span class="string">&quot;--bin&quot;</span>, PKG_NAME])
-        .status()<span class="question-mark">?</span>;
+        .args([<span class="string">&quot;doc&quot;</span>, <span class="string">&quot;--release&quot;</span>, <span class="string">&quot;--no-deps&quot;</span>]) <span class="comment">// .args([&quot;doc&quot;, &quot;--release&quot;, &quot;--no-deps&quot;, &quot;--bin&quot;, PKG_NAME])
+        </span>.status()<span class="question-mark">?</span>;
     <span class="kw">if </span>!status.success() {
         <span class="prelude-val">Err</span>(<span class="string">&quot;error: cargo doc failed&quot;</span>)<span class="question-mark">?</span>;
     }
 
-    <span class="kw">let </span>copy_from: PathBuf = project_root().join(<span class="string">&quot;target/doc&quot;</span>);
-    <span class="kw">let </span>copy_to = dir_docs();
-    <span class="kw">if </span>Command::new(<span class="string">&quot;cp&quot;</span>).arg(<span class="string">&quot;--version&quot;</span>).stdout(Stdio::null()).status().is_ok() {
-        <span class="macro">eprintln!</span>(<span class="string">&quot;info: copying `target/doc` directory to `docs/`&quot;</span>);
-        <span class="kw">let </span>exit_status = Command::new(<span class="string">&quot;cp&quot;</span>)
-            .args([<span class="string">&quot;-r&quot;</span>, <span class="kw-2">&amp;</span>copy_from.to_string_lossy(), <span class="kw-2">&amp;</span>copy_to.to_string_lossy()])
-            .status()<span class="question-mark">?</span>;
-        <span class="kw">if </span>!exit_status.success() {
-            <span class="prelude-val">Err</span>(<span class="string">&quot;error: failed to copy to directory with `cp`&quot;</span>)<span class="question-mark">?</span>;
+    {
+        <span class="kw">let </span>copy_from: PathBuf = project_root().join(<span class="string">&quot;target/doc&quot;</span>);
+        <span class="kw">let </span>copy_to = dir_docs();
+        <span class="kw">if </span>Command::new(<span class="string">&quot;cp&quot;</span>).arg(<span class="string">&quot;--version&quot;</span>).stdout(Stdio::null()).status().is_ok() {
+            <span class="macro">eprintln!</span>(<span class="string">&quot;info: copying `target/doc` directory to `docs/`&quot;</span>);
+            <span class="kw">let </span>exit_status = Command::new(<span class="string">&quot;cp&quot;</span>)
+                .args([<span class="string">&quot;-r&quot;</span>, <span class="kw-2">&amp;</span>copy_from.to_string_lossy(), <span class="kw-2">&amp;</span>copy_to.to_string_lossy()])
+                .status()<span class="question-mark">?</span>;
+            <span class="kw">if </span>!exit_status.success() {
+                <span class="prelude-val">Err</span>(<span class="string">&quot;error: failed to copy to directory with `cp`&quot;</span>)<span class="question-mark">?</span>;
+            }
+        } <span class="kw">else </span>{
+            <span class="macro">eprintln!</span>(<span class="string">&quot;error: no `cp` utility found&quot;</span>)
         }
-    } <span class="kw">else </span>{
-        <span class="macro">eprintln!</span>(<span class="string">&quot;error: no `cp` utility found&quot;</span>)
     }
 
-    <span class="kw">let </span>arg_html = <span class="macro">format!</span>(<span class="string">&quot;&lt;meta http-equiv=\&quot;refresh\&quot; content=\&quot;0; url={PKG_NAME}\&quot;&gt;&quot;</span>,);
-
+    <span class="comment">// Create psudo docs/index.html which points to the one in docs/package/index.html
+    // Since github pages looks for index.html in the docs/ or root of the folder specified.
+    </span><span class="kw">let </span>arg_html = <span class="macro">format!</span>(<span class="string">&quot;&lt;meta http-equiv=\&quot;refresh\&quot; content=\&quot;0; url={PKG_NAME}\&quot;&gt;&quot;</span>,);
     <span class="comment">// let new_html_index = &quot;target/doc/index.html&quot;;
     </span><span class="kw">let </span>new_html_index_path = <span class="string">&quot;docs/index.html&quot;</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>f_index_html = fs::File::create(new_html_index_path)<span class="question-mark">?</span>;

@@ -57,6 +57,7 @@ fn run_dist() -> Result<(), DynError> {
     fs::create_dir_all(dist_dir())?;
     dist_binary()?;
     dist_manpage()?;
+
     Ok(())
 }
 
@@ -103,6 +104,7 @@ fn dist_manpage() -> Result<(), DynError> {
 fn run_dist_doc() -> Result<(), DynError> {
     let _ = fs::remove_dir_all(dir_docs());
     dist_doc_xtask()?;
+
     Ok(())
 }
 
@@ -124,28 +126,31 @@ fn dist_doc_xtask() -> Result<(), DynError> {
     let cargo: String = env::var("CARGO").unwrap_or_else(|_| "cargo".to_string());
     let status: ExitStatus = Command::new(cargo)
         .current_dir(project_root())
-        .args(["doc", "--release", "--no-deps", "--bin", PKG_NAME])
+        .args(["doc", "--release", "--no-deps"]) // .args(["doc", "--release", "--no-deps", "--bin", PKG_NAME])
         .status()?;
     if !status.success() {
         Err("error: cargo doc failed")?;
     }
 
-    let copy_from: PathBuf = project_root().join("target/doc");
-    let copy_to = dir_docs();
-    if Command::new("cp").arg("--version").stdout(Stdio::null()).status().is_ok() {
-        eprintln!("info: copying `target/doc` directory to `docs/`");
-        let exit_status = Command::new("cp")
-            .args(["-r", &copy_from.to_string_lossy(), &copy_to.to_string_lossy()])
-            .status()?;
-        if !exit_status.success() {
-            Err("error: failed to copy to directory with `cp`")?;
+    {
+        let copy_from: PathBuf = project_root().join("target/doc");
+        let copy_to = dir_docs();
+        if Command::new("cp").arg("--version").stdout(Stdio::null()).status().is_ok() {
+            eprintln!("info: copying `target/doc` directory to `docs/`");
+            let exit_status = Command::new("cp")
+                .args(["-r", &copy_from.to_string_lossy(), &copy_to.to_string_lossy()])
+                .status()?;
+            if !exit_status.success() {
+                Err("error: failed to copy to directory with `cp`")?;
+            }
+        } else {
+            eprintln!("error: no `cp` utility found")
         }
-    } else {
-        eprintln!("error: no `cp` utility found")
     }
 
+    // Create psudo docs/index.html which points to the one in docs/package/index.html
+    // Since github pages looks for index.html in the docs/ or root of the folder specified.
     let arg_html = format!("<meta http-equiv=\"refresh\" content=\"0; url={PKG_NAME}\">",);
-
     // let new_html_index = "target/doc/index.html";
     let new_html_index_path = "docs/index.html";
     let mut f_index_html = fs::File::create(new_html_index_path)?;
