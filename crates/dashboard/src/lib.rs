@@ -11,6 +11,35 @@
 //! <!--START_SECTION:dashboard-->
 //! <!--END_SECTION:dashboard-->
 //! ```
+//!
+//! `try_main_refactor_v3` function serves as the main driver of the program:
+//!
+//! * It is responsible for creating and initializing an instance of `App` and using it to call
+//!   `GitCliOps::fetch_repos_write_data` to fetch the list of Git repositories and write the data
+//!   to disk.
+//! * Then, it spawns two operations (`update_markdown_file` and `write_json_file`) into separate
+//!   threads for parallel execution.
+//!
+//! ## Examples
+//!
+//! ```rust
+//! use crate::dashboard::app::*;
+//!
+//! let file_path = "/path/to/README.md";
+//! let result = try_main_refactor_v3(file_path);
+//!
+//! match result {
+//!     Ok(()) => println!("Success"),
+//!     Err(e) => println!("Error: {:?}", e),
+//! }
+//! ```
+//!
+//! ## Error
+//!
+//! This function will return an `Err` variant of `Result` type if the call to
+//! `GitCliOps::fetch_repos_write_data` fails or if the `thread::scope` call returns an
+//! error. In this case, `AppError` will be returned.
+//!
 //! ## Development
 //!
 //! ### Usage
@@ -98,6 +127,31 @@ pub mod app {
         pub(crate) db: DB,
     }
 
+    /// # `try_main_refactor_v3` function serves as the main driver of the program.
+    /// It is responsible for creating and initializing an instance of `App` and using it to call
+    /// `GitCliOps::fetch_repos_write_data` to fetch the list of Git repositories and write the data
+    /// to disk. Then, it spawns two operations (`update_markdown_file` and `write_json_file`) into
+    /// separate threads for parallel execution.
+    ///
+    /// # Error
+    ///
+    /// This function will return an `Err` variant of `Result` type if the call to
+    /// `GitCliOps::fetch_repos_write_data` fails or if the `thread::scope` call returns an
+    /// error. In this case, `AppError` will be returned.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use crate::dashboard::app::*;
+    ///
+    /// let file_path = "/path/to/README.md";
+    /// let result = try_main_refactor_v3(file_path);
+    ///
+    /// match result {
+    ///     Ok(()) => println!("Success"),
+    ///     Err(e) => println!("Error: {:?}", e),
+    /// }
+    /// ```
     pub fn try_main_refactor_v3(file_path: &str) -> Result<(), AppError> {
         let mut dashboard =
             App { config: config::Config {}, db: DB { data: None, repo_list: None } };
@@ -114,6 +168,7 @@ pub mod app {
         Ok(())
     }
 
+    // Replace the content of the file with the updated markdown list.
     fn update_markdown_file(data: Option<&Vec<GitRepo>>, file_path: &str) -> Result<(), AppError> {
         // If data is Some, convert `Vec<GitRepo>` into a list of GitRepoListItem.
         let list = match data {
@@ -125,30 +180,35 @@ pub mod app {
             || list.iter().map(fmt_markdown_list_item).collect::<Vec<_>>().join("\n"),
             || CommentBlock::new("tag_1".to_string()),
         );
+
         findrepl::replace_par(&text, block, Path::new(file_path)).map_err(AppError::ParserError)?;
         log::info!("Updated git repo list in file {}", file_path);
 
         Ok(())
     }
 
+    /// Open or create a file and write the data to it in JSON format.
     fn write_json_file(data: Option<&Vec<GitRepo>>, file_path: &str) -> Result<(), AppError> {
         let path = util::replace_file_extension(file_path, "json");
-
-        let file = OpenOptions::new()
-            .read(true)
-            .write(true)
-            .create(true)
-            .open(&path)
-            .map_err(|e| AppError::Io(Arc::new(e)))?;
-
-        let data = match data {
-            Some(data) => data,
-            None => return Err(AppError::UnwrapError("No data found".to_string())),
-        };
+        let (file, data) = rayon::join(
+            || {
+                OpenOptions::new()
+                    .read(true)
+                    .write(true)
+                    .create(true)
+                    .open(&path)
+                    .map_err(|e| AppError::Io(Arc::new(e)))
+            },
+            || {
+                Ok(match data {
+                    Some(data) => data,
+                    None => return Err(AppError::UnwrapError("No data found".to_string())),
+                })
+            },
+        );
 
         log::info!("Writing git repo list to file {}", &path);
-
-        serde_json::to_writer_pretty(file, data).map_err(AppError::SerdeError)
+        serde_json::to_writer_pretty(file?, data?).map_err(AppError::SerdeError)
     }
 
     /// Create and format a new markdown list item with repo name, url and its description.
