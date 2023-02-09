@@ -277,9 +277,9 @@
 <a href="#277" id="277">277</a>
 </pre><pre class="rust"><code><span class="doccomment">//! `repos`
 //!
-//! # `GITHUB_TOKEN`
+//! # `GH_TOKEN`
 //!
-//! The `GITHUB_TOKEN` is a personal access token that can be generated from the Github website.
+//! The `GH_TOKEN` is a personal access token that can be generated from the Github website.
 //!
 //! &lt;YOUR_PERSONAL_ACCESS_TOKEN&gt;: minimum requirements — `admin:org`, `admin:public_key`,
 //! `repo`.
@@ -325,7 +325,7 @@
 /// # Prerequisites
 ///
 /// * Create a personal access token in your GitHub account settings.
-/// * Store the access token as an environment variable, for example GITHUB_ACCESS_TOKEN.
+/// * Store the access token as an environment variable, for example GH_TOKEN.
 /// * In your Rust application, retrieve the access token from the environment variable using the
 ///   dotenv crate.
 /// * Use the octocrab crate to make API requests to the GitHub API, passing the access token as an
@@ -335,7 +335,7 @@
 ///
 /// [See also](https://github.com/XAMPPRocky/octocrab/blob/master/examples/list_repos_for_authenticated_user.rs)
 </span><span class="kw">pub async fn </span>list_user_repos() -&gt; octocrab::Result&lt;Page&lt;Repository&gt;&gt; {
-    <span class="kw">let </span>token = std::env::var(<span class="string">&quot;GITHUB_TOKEN&quot;</span>).expect(<span class="string">&quot;GITHUB_TOKEN env variable is required&quot;</span>);
+    <span class="kw">let </span>token = std::env::var(<span class="string">&quot;GH_TOKEN&quot;</span>).expect(<span class="string">&quot;GH_TOKEN env variable is required&quot;</span>);
     <span class="kw">let </span>octocrab = Octocrab::builder().personal_token(token).build()<span class="question-mark">?</span>;
 
     <span class="kw">let </span>repos = octocrab
@@ -497,7 +497,7 @@
     <span class="attr">#[tokio::test]
     </span><span class="kw">async fn </span>test_list_user_repos_not_empty() -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         dotenv::dotenv().ok();
-        <span class="kw">let </span>token = std::env::var(<span class="string">&quot;GITHUB_TOKEN&quot;</span>).expect(<span class="string">&quot;GITHUB_TOKEN env variable is required&quot;</span>);
+        <span class="kw">let </span>token = std::env::var(<span class="string">&quot;GH_TOKEN&quot;</span>).expect(<span class="string">&quot;GH_TOKEN env variable is required&quot;</span>);
         <span class="kw">let </span>octocrab = Octocrab::builder().personal_token(token).build()<span class="question-mark">?</span>;
 
         <span class="kw">let </span>my_repos = octocrab
@@ -526,7 +526,7 @@
         </span>dotenv::dotenv().ok();
 
         <span class="comment">// Get the token from environment variable
-        </span><span class="kw">let </span>token = std::env::var(<span class="string">&quot;GITHUB_TOKEN&quot;</span>).expect(<span class="string">&quot;GITHUB_TOKEN env variable is required&quot;</span>);
+        </span><span class="kw">let </span>token = std::env::var(<span class="string">&quot;GH_TOKEN&quot;</span>).expect(<span class="string">&quot;GH_TOKEN env variable is required&quot;</span>);
         <span class="comment">// Build the Octocrab client with the token
         </span><span class="kw">let </span>octocrab = Octocrab::builder().personal_token(token).build()<span class="question-mark">?</span>;
         <span class="comment">// Get the list of repos for the authenticated user
