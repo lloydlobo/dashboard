@@ -6,13 +6,13 @@
 This is a dashboard to display all projects.
 
 <!--START_SECTION:tag_1-->
+* [odin-rock-paper-scissors-docs](https://github.com/lloydlobo/odin-rock-paper-scissors-docs) — Documentation for the "Odin Rock Paper Scissors" Game
+* [styleguide-homely-recipes](https://github.com/lloydlobo/styleguide-homely-recipes) — Style, Brand, and Developer Guide for Homely Recipes
 * [dashboard](https://github.com/lloydlobo/dashboard) — Autogenerating Mega dashboard for all my projects
 * [weather-app](https://github.com/lloydlobo/weather-app) — A functional stunning Weather App 🌥️   made using a sim...
 * [lloydlobo](https://github.com/lloydlobo/lloydlobo) — Lloyd Lobo's GitHub profile.
 * [homely-recipes](https://github.com/lloydlobo/homely-recipes) — The site that recommends hand-picked home-made recipes prepa...
 * [wavefncollapse](https://github.com/lloydlobo/wavefncollapse) — wavefncollapse
-* [odin-rock-paper-scissors-docs](https://github.com/lloydlobo/odin-rock-paper-scissors-docs) — Documentation for the "Odin Rock Paper Scissors" Game
-* [styleguide-homely-recipes](https://github.com/lloydlobo/styleguide-homely-recipes) — Style, Brand, and Developer Guide for Homely Recipes
 * [rssh](https://github.com/lloydlobo/rssh) — rssh or Rust Shell allows keeping maintainable bash aliases ...
 * [dio](https://github.com/lloydlobo/dio)
 * [rusty](https://github.com/lloydlobo/rusty)

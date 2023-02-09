@@ -1,8 +1,8 @@
 //! `repos`
 //!
-//! # `GITHUB_TOKEN`
+//! # `GH_TOKEN`
 //!
-//! The `GITHUB_TOKEN` is a personal access token that can be generated from the Github website.
+//! The `GH_TOKEN` is a personal access token that can be generated from the Github website.
 //!
 //! <YOUR_PERSONAL_ACCESS_TOKEN>: minimum requirements — `admin:org`, `admin:public_key`,
 //! `repo`.
@@ -48,7 +48,7 @@ use serde::{Deserialize, Serialize};
 /// # Prerequisites
 ///
 /// * Create a personal access token in your GitHub account settings.
-/// * Store the access token as an environment variable, for example GITHUB_ACCESS_TOKEN.
+/// * Store the access token as an environment variable, for example GH_TOKEN.
 /// * In your Rust application, retrieve the access token from the environment variable using the
 ///   dotenv crate.
 /// * Use the octocrab crate to make API requests to the GitHub API, passing the access token as an
@@ -58,7 +58,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// [See also](https://github.com/XAMPPRocky/octocrab/blob/master/examples/list_repos_for_authenticated_user.rs)
 pub async fn list_user_repos() -> octocrab::Result<Page<Repository>> {
-    let token = std::env::var("GITHUB_TOKEN").expect("GITHUB_TOKEN env variable is required");
+    let token = std::env::var("GH_TOKEN").expect("GH_TOKEN env variable is required");
     let octocrab = Octocrab::builder().personal_token(token).build()?;
 
     let repos = octocrab
@@ -220,7 +220,7 @@ mod tests {
     #[tokio::test]
     async fn test_list_user_repos_not_empty() -> Result<()> {
         dotenv::dotenv().ok();
-        let token = std::env::var("GITHUB_TOKEN").expect("GITHUB_TOKEN env variable is required");
+        let token = std::env::var("GH_TOKEN").expect("GH_TOKEN env variable is required");
         let octocrab = Octocrab::builder().personal_token(token).build()?;
 
         let my_repos = octocrab
@@ -249,7 +249,7 @@ mod tests {
         dotenv::dotenv().ok();
 
         // Get the token from environment variable
-        let token = std::env::var("GITHUB_TOKEN").expect("GITHUB_TOKEN env variable is required");
+        let token = std::env::var("GH_TOKEN").expect("GH_TOKEN env variable is required");
         // Build the Octocrab client with the token
         let octocrab = Octocrab::builder().personal_token(token).build()?;
         // Get the list of repos for the authenticated user
