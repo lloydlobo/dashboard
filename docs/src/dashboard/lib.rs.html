@@ -598,6 +598,17 @@
 <a href="#598" id="598">598</a>
 <a href="#599" id="599">599</a>
 <a href="#600" id="600">600</a>
+<a href="#601" id="601">601</a>
+<a href="#602" id="602">602</a>
+<a href="#603" id="603">603</a>
+<a href="#604" id="604">604</a>
+<a href="#605" id="605">605</a>
+<a href="#606" id="606">606</a>
+<a href="#607" id="607">607</a>
+<a href="#608" id="608">608</a>
+<a href="#609" id="609">609</a>
+<a href="#610" id="610">610</a>
+<a href="#611" id="611">611</a>
 </pre><pre class="rust"><code><span class="doccomment">//! # dashboard
 //!
 //! `dashboard` is list of &quot;GitHub Actions build status&quot; of all the repos under my account, for my
@@ -625,12 +636,17 @@
 //! ```rust
 //! use crate::dashboard::app::*;
 //!
-//! let file_path = &quot;/path/to/README.md&quot;;
-//! let result = try_main_refactor_v3(file_path);
+//! #[tokio::main]
+//! pub async fn main() -&gt; Result&lt;(), AppError&gt; {
+//!     dotenv::dotenv().ok();
+//!     let file_path = &quot;/path/to/README.md&quot;;
+//!     let result = try_main_refactor_v3(file_path).await;
 //!
-//! match result {
-//!     Ok(()) =&gt; println!(&quot;Success&quot;),
-//!     Err(e) =&gt; println!(&quot;Error: {:?}&quot;, e),
+//!     match result {
+//!         Ok(()) =&gt; println!(&quot;Success&quot;),
+//!         Err(e) =&gt; println!(&quot;Error: {:?}&quot;, e),
+//!     }
+//!     Ok(())
 //! }
 //! ```
 //!
@@ -643,7 +659,6 @@
 //! ## Development
 //!
 //! ### Usage
-//!
 //! ```sh
 //! $ CARGO_LOG=error cargo r -p dashboard
 //! ```
@@ -655,7 +670,6 @@
 //! ### Parsed API - Markdown
 //!
 //! The detail of each git repository is appended as a list item to `README.md`:
-//!
 //! ```md
 //! * [name](url) — description
 //! ```
@@ -748,18 +762,26 @@
     /// ```rust
     /// use crate::dashboard::app::*;
     ///
-    /// let file_path = &quot;/path/to/README.md&quot;;
-    /// let result = try_main_refactor_v3(file_path);
+    /// #[tokio::main]
+    /// pub async fn main() -&gt; Result&lt;(), AppError&gt; {
+    ///     dotenv::dotenv().ok();
+    ///     let file_path = &quot;/path/to/README.md&quot;;
+    ///     let result = try_main_refactor_v3(file_path).await;
     ///
-    /// match result {
-    ///     Ok(()) =&gt; println!(&quot;Success&quot;),
-    ///     Err(e) =&gt; println!(&quot;Error: {:?}&quot;, e),
+    ///     match result {
+    ///         Ok(()) =&gt; println!(&quot;Success&quot;),
+    ///         Err(e) =&gt; println!(&quot;Error: {:?}&quot;, e),
+    ///     }
+    ///     Ok(())
     /// }
     /// ```
-    </span><span class="kw">pub fn </span>try_main_refactor_v3(file_path: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;(), AppError&gt; {
+    </span><span class="kw">pub async fn </span>try_main_refactor_v3(file_path: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;(), AppError&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>dashboard =
             App { config: config::Config {}, db: DB { data: <span class="prelude-val">None</span>, repo_list: <span class="prelude-val">None </span>} };
 
+        {
+            api::repos::list_user_repos().<span class="kw">await</span>.unwrap();
+        }
         GitCliOps::fetch_repos_write_data(<span class="kw-2">&amp;mut </span>dashboard.db)<span class="question-mark">?</span>;
 
         <span class="comment">// Spawning the two operations into separate threads for parallel execution

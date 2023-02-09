@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["get_list",""],["list_user_repos","`list_user_repos` prints the names of repositories for the authenticated user."],["to_hashmap",""],["try_repos",""]],"struct":[["List",""]]};

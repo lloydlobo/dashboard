@@ -1,3 +1,4 @@
 (function() {var implementors = {
+"api":[["impl <a class=\"trait\" href=\"https://docs.rs/serde/1.0.152/serde/ser/trait.Serialize.html\" title=\"trait serde::ser::Serialize\">Serialize</a> for <a class=\"struct\" href=\"api/repos/struct.List.html\" title=\"struct api::repos::List\">List</a>"]],
 "dashboard":[["impl <a class=\"trait\" href=\"https://docs.rs/serde/1.0.152/serde/ser/trait.Serialize.html\" title=\"trait serde::ser::Serialize\">Serialize</a> for <a class=\"struct\" href=\"dashboard/app/struct.App.html\" title=\"struct dashboard::app::App\">App</a>"]]
 };if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

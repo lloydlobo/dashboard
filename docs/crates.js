@@ -1,1 +1,1 @@
-window.ALL_CRATES = ["dashboard","parser","xtask"];
+window.ALL_CRATES = ["api","dashboard","parser","xtask"];
