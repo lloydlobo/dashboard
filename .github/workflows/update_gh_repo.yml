@@ -10,7 +10,7 @@ on:
 env:
   CARGO_TERM_COLOR: always
   # Add secrets to access the Github repository
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
   # Add secrets to access shell gh cli?
 #   SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
 #   SSH_PUBLIC_KEY: ${{ secrets.SSH_PUBLIC_KEY }}
