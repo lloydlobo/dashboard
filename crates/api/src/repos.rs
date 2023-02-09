@@ -84,7 +84,7 @@ pub fn to_hashmap(repo: Repository) -> HashMap<String, String> {
                 serde_json::Value::Null => String::new(),
                 _ => value.to_string(),
             };
-            (key.to_string(), value_str.to_string())
+            (key.to_string(), value_str)
         })
         .collect()
 }
@@ -185,7 +185,7 @@ macro_rules! unwrap_struct_iter {
     ($struct:ident) => {
         impl $struct {
             pub fn unwrap(self) -> $struct {
-                let mut new_struct = Self::default();
+                let new_struct = Self::default();
                 // for field in self.into_iter() { match field { Some(value) =>
                 // new_struct.insert(value), None => {} } }
                 new_struct

@@ -361,7 +361,7 @@
                 serde_json::Value::Null =&gt; String::new(),
                 <span class="kw">_ </span>=&gt; value.to_string(),
             };
-            (key.to_string(), value_str.to_string())
+            (key.to_string(), value_str)
         })
         .collect()
 }
@@ -462,7 +462,7 @@
     (<span class="macro-nonterminal">$</span><span class="kw">struct</span>:<span class="macro-nonterminal">ident</span>) =&gt; {
         <span class="kw">impl </span><span class="macro-nonterminal">$</span><span class="kw">struct </span>{
             <span class="kw">pub fn </span><span class="macro-nonterminal">unwrap</span>(<span class="self">self</span>) -&gt; <span class="macro-nonterminal">$</span><span class="kw">struct </span>{
-                <span class="kw">let </span><span class="kw-2">mut </span><span class="macro-nonterminal">new_struct </span>= <span class="self">Self</span>::default();
+                <span class="kw">let </span><span class="macro-nonterminal">new_struct </span>= <span class="self">Self</span>::default();
                 <span class="comment">// for field in self.into_iter() { match field { Some(value) =&gt;
                 // new_struct.insert(value), None =&gt; {} } }
                 </span>new_struct
