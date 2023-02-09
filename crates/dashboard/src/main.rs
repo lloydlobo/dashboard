@@ -22,14 +22,16 @@ lazy_static! {
 /// # Errors
 ///
 /// This function will return an error if .
-pub fn main() -> app::Result<(), AppError> {
+#[tokio::main]
+pub async fn main() -> app::Result<(), AppError> {
+    dotenv::dotenv().ok();
     let start = std::time::Instant::now();
     pretty_env_logger::env_logger::builder()
         .filter_level(log::LevelFilter::Info)
         .filter_level(log::LevelFilter::Debug)
         .init();
 
-    if let Err(e) = app::try_main_refactor_v3("README.md") {
+    if let Err(e) = app::try_main_refactor_v3("README.md").await {
         eprintln!("{}", anyhow!(e));
         std::process::exit(1)
     }

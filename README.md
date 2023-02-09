@@ -6,13 +6,13 @@
 This is a dashboard to display all projects.
 
 <!--START_SECTION:tag_1-->
-* [dashboard](https://github.com/lloydlobo/dashboard) — Autogenerating Mega dashboard for all my projects
+* [weather-app](https://github.com/lloydlobo/weather-app) — A functional stunning Weather App 🌥️   made using a sim...
 * [lloydlobo](https://github.com/lloydlobo/lloydlobo) — Lloyd Lobo's GitHub profile.
+* [dashboard](https://github.com/lloydlobo/dashboard) — Autogenerating Mega dashboard for all my projects
 * [homely-recipes](https://github.com/lloydlobo/homely-recipes) — The site that recommends hand-picked home-made recipes prepa...
 * [wavefncollapse](https://github.com/lloydlobo/wavefncollapse) — wavefncollapse
 * [odin-rock-paper-scissors-docs](https://github.com/lloydlobo/odin-rock-paper-scissors-docs) — Documentation for the "Odin Rock Paper Scissors" Game
 * [styleguide-homely-recipes](https://github.com/lloydlobo/styleguide-homely-recipes) — Style, Brand, and Developer Guide for Homely Recipes
-* [weather-app](https://github.com/lloydlobo/weather-app) — A functional stunning Weather App 🌥️   made using a sim...
 * [rssh](https://github.com/lloydlobo/rssh) — rssh or Rust Shell allows keeping maintainable bash aliases ...
 * [dio](https://github.com/lloydlobo/dio)
 * [rusty](https://github.com/lloydlobo/rusty)
@@ -158,33 +158,3 @@ Quit by pressing CTRL-C
 > - Look for a crate being built multiple times with different versions. Try to remove the older versions from the dependency graph.
 > - Split large crates into smaller pieces.
 > - If there are a large number of crates bottlenecked on a single crate, focus your attention on improving that one crate to improve parallelism.
-
-## Cron
-
-[Source](https://www.netiq.com/documentation/cloud-manager-2-5/ncm-reference/data/bexyssf.html#beykp21)
-The following table shows examples of full cron expressions and their respective meanings.
-
-```yml
-# Results of Altered Cron Syntax on Execution Times
-
-# Cron Expression Example    # Description
-
-"0 0 12 * * ?            "   # Fire at 12:00 p.m. (noon) every day
-"0 15 10 ? * *           "   # Fire at 10:15 a.m. every day
-"0 15 10 * * ?           "   # Fire at 10:15 a.m. every day
-"0 15 10 * * ? *         "   # Fire at 10:15 a.m. every day
-"0 15 10 * * ? 2012      "   # Fire at 10:15 a.m. every day during the year 2012
-"0 * 14 * * ?            "   # Fire every minute starting at 2:00 p.m. and ending at 2:59.p.m., every day
-"0 0/5 14 * * ?          "   # Fire every five minutes starting at 2:00 p.m. and ending at 2:55 p.m., every day
-"0 0/5 14,18 * * ?       "   # Fire every five minutes starting at 2:00 p.m. and ending at 2:55 p.m., and fire every five minutes starting at 6:00 p.m. and ending at 6:55 p.m., every day
-"0 0-5 14 * * ?          "   # Fire every minute starting at 2:00 p.m. and ending at 2:05.p.m., every day
-"0 10,44 14 ? 3 WED      "   # Fire at 2:10 p.m. and at 2:44 p.m. every Wednesday in the month of March
-"0 15 10 ? * MON-FRI     "   # Fire at 10:15 a.m. every Monday, Tuesday, Wednesday, Thursday and Friday
-"0 15 10 15 * ?          "   # Fire at 10:15 a.m. on the 15th day of every month
-"0 15 10 15 * ?          "   # Fire at 10:15 a.m. on the last day of every month
-"0 15 10 ? * 6L          "   # Fire at 10:15 a.m. on the last Friday of every month
-"0 15 10 ? * 6L 2011-2014"   # Fire at 10:15 a.m. on every last Friday of every month during the years 2011, 20012, 2014, and 2014
-"0 15 10 ? * 6#3         "   # Fire at 10:15 a.m. on the third Friday of every month
-"0 0 12 1/5 * ?          "   # Fire at 12:00 p.m. (noon) every five days every month, starting on the first day of the month
-"0 11 11 11 11 ?         "   # Fire every November 11th at 11:11 a.m.
-```

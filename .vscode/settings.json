@@ -1,0 +1,12 @@
+{
+    "editor.tabCompletion": "on",
+    "diffEditor.codeLens": true,
+    "workbench.colorCustomizations": {
+        "editor.lineHighlightBackground": "#1073cf2d",
+        "editor.lineHighlightBorder": "#9fced11f",
+        "editor.selectionBackground": "#00000070",
+        "scrollbar.shadow": "#00000000",
+        "widget.shadow": "#00000000",
+        "minimap.background": "#00000000"
+    }
+}

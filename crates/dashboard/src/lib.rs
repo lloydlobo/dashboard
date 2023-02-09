@@ -25,12 +25,17 @@
 //! ```rust
 //! use crate::dashboard::app::*;
 //!
-//! let file_path = "/path/to/README.md";
-//! let result = try_main_refactor_v3(file_path);
+//! #[tokio::main]
+//! pub async fn main() -> Result<(), AppError> {
+//!     dotenv::dotenv().ok();
+//!     let file_path = "/path/to/README.md";
+//!     let result = try_main_refactor_v3(file_path).await;
 //!
-//! match result {
-//!     Ok(()) => println!("Success"),
-//!     Err(e) => println!("Error: {:?}", e),
+//!     match result {
+//!         Ok(()) => println!("Success"),
+//!         Err(e) => println!("Error: {:?}", e),
+//!     }
+//!     Ok(())
 //! }
 //! ```
 //!
@@ -43,7 +48,6 @@
 //! ## Development
 //!
 //! ### Usage
-//!
 //! ```sh
 //! $ CARGO_LOG=error cargo r -p dashboard
 //! ```
@@ -55,7 +59,6 @@
 //! ### Parsed API - Markdown
 //!
 //! The detail of each git repository is appended as a list item to `README.md`:
-//!
 //! ```md
 //! * [name](url) — description
 //! ```
@@ -148,18 +151,26 @@ pub mod app {
     /// ```rust
     /// use crate::dashboard::app::*;
     ///
-    /// let file_path = "/path/to/README.md";
-    /// let result = try_main_refactor_v3(file_path);
+    /// #[tokio::main]
+    /// pub async fn main() -> Result<(), AppError> {
+    ///     dotenv::dotenv().ok();
+    ///     let file_path = "/path/to/README.md";
+    ///     let result = try_main_refactor_v3(file_path).await;
     ///
-    /// match result {
-    ///     Ok(()) => println!("Success"),
-    ///     Err(e) => println!("Error: {:?}", e),
+    ///     match result {
+    ///         Ok(()) => println!("Success"),
+    ///         Err(e) => println!("Error: {:?}", e),
+    ///     }
+    ///     Ok(())
     /// }
     /// ```
-    pub fn try_main_refactor_v3(file_path: &str) -> Result<(), AppError> {
+    pub async fn try_main_refactor_v3(file_path: &str) -> Result<(), AppError> {
         let mut dashboard =
             App { config: config::Config {}, db: DB { data: None, repo_list: None } };
 
+        {
+            api::repos::list_user_repos().await.unwrap();
+        }
         GitCliOps::fetch_repos_write_data(&mut dashboard.db)?;
 
         // Spawning the two operations into separate threads for parallel execution
