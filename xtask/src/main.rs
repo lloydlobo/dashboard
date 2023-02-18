@@ -12,10 +12,10 @@ use man::prelude::*;
 
 ////////////////////////////////////////////////////////////////////////////////
 
+const PKG_NAME: &str = "dashboard";
+
 type Result<T, E> = anyhow::Result<T, E>;
 type DynError = Box<dyn std::error::Error>;
-
-const PKG_NAME: &str = "dashboard";
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -59,6 +59,51 @@ ARGS:
 
 ////////////////////////////////////////////////////////////////////////////////
 
+fn project_root() -> PathBuf {
+    Path::new(&env!("CARGO_MANIFEST_DIR")).ancestors().nth(1).unwrap().to_path_buf()
+}
+
+fn dir_docs() -> PathBuf {
+    project_root().join("docs/")
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+fn dist_dir() -> PathBuf {
+    project_root().join("target/dist")
+}
+
+fn dist_manpage() -> Result<(), DynError> {
+    let page = Manual::new(PKG_NAME).about("Dashboard to display all git projects.").render();
+    fs::write(dist_dir().join(format!("{PKG_NAME}.man")), page)?;
+
+    Ok(())
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+/// Removes a directory at this path, after removing all its contents. Use carefully!
+fn run_dist() -> Result<(), DynError> {
+    let _ = fs::remove_dir_all(dist_dir());
+    fs::create_dir_all(dist_dir())?;
+
+    dist_binary()?;
+    dist_manpage()?;
+
+    Ok(())
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+fn run_dist_doc() -> Result<(), DynError> {
+    let _ = fs::remove_dir_all(dir_docs());
+    dist_doc_xtask()?;
+
+    Ok(())
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 /// Runs the `parse.py` script and pipes its output to a file.
 ///
 /// # Errors
@@ -95,36 +140,6 @@ fn run_parse_json() -> Result<(), DynError> {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-/// Removes a directory at this path, after removing all its contents. Use carefully!
-fn run_dist() -> Result<(), DynError> {
-    let _ = fs::remove_dir_all(dist_dir());
-    fs::create_dir_all(dist_dir())?;
-    dist_binary()?;
-    dist_manpage()?;
-
-    Ok(())
-}
-////////////////////////////////////////////////////////////////////////////////
-
-fn run_dist_doc() -> Result<(), DynError> {
-    let _ = fs::remove_dir_all(dir_docs());
-    dist_doc_xtask()?;
-
-    Ok(())
-}
-
-////////////////////////////////////////////////////////////////////////////////
-
-fn project_root() -> PathBuf {
-    Path::new(&env!("CARGO_MANIFEST_DIR")).ancestors().nth(1).unwrap().to_path_buf()
-}
-
-////////////////////////////////////////////////////////////////////////////////
-
-fn dist_dir() -> PathBuf {
-    project_root().join("target/dist")
-}
-
 fn dist_binary() -> Result<(), DynError> {
     let cargo: String = env::var("CARGO").unwrap_or_else(|_| "cargo".to_string());
     let status: ExitStatus =
@@ -154,16 +169,7 @@ fn dist_binary() -> Result<(), DynError> {
     Ok(())
 }
 
-fn dist_manpage() -> Result<(), DynError> {
-    let page = Manual::new(PKG_NAME).about("Wave function collapse").render();
-    fs::write(dist_dir().join(format!("{PKG_NAME}.man")), page)?;
-
-    Ok(())
-}
-
-fn dir_docs() -> PathBuf {
-    project_root().join("docs/")
-}
+////////////////////////////////////////////////////////////////////////////////
 
 /// # Equivalent shell script
 ///
@@ -175,71 +181,58 @@ fn dir_docs() -> PathBuf {
 /// echo "<meta http-equiv=\"refresh\" content=\"0; url=PKG_NAME\">" > target/doc/index.html
 /// cp -r target/doc ./docs
 /// ```
+// rustc: `if` and `else` have incompatible types
+// expected tuple `(&str, &str, &str)` found tuple `(&str, &str)`
+// let copy_command =
+// if cfg!(target_os = "windows") { ("cmd", "/C", "xcopy") } else { ("cp", "-r") };
+// let copy_status = Command::new(copy_command.0) .arg(copy_command.1) .arg(copy_command.2)
+// .arg(&copy_from) .arg(&copy_to) .status();
 fn dist_doc_xtask() -> Result<(), DynError> {
     let cargo: String = env::var("CARGO").unwrap_or_else(|_| "cargo".to_string());
     let status: ExitStatus = Command::new(cargo)
         .current_dir(project_root())
         .args(["doc", "--release", "--no-deps"]) // .args(["doc", "--release", "--no-deps", "--bin", PKG_NAME])
-        .status()?;
+        .status()
+        .with_context(|| "Failed to build documentation")?;
     if !status.success() {
         Err("error: cargo doc failed")?;
     }
 
-    {
-        let copy_from: PathBuf = project_root().join("target/doc");
-        let copy_to = dir_docs();
-        if Command::new("cp").arg("--version").stdout(Stdio::null()).status().is_ok() {
-            eprintln!("info: copying `target/doc` directory to `docs/`");
-            let exit_status = Command::new("cp")
+    let copy_from = project_root().join("target/doc");
+    let copy_to = dir_docs();
+    if let Ok(exit_status) = Command::new("cp").arg("--version").stdout(Stdio::null()).status() {
+        if exit_status.success() {
+            Command::new("cp")
                 .args(["-r", &copy_from.to_string_lossy(), &copy_to.to_string_lossy()])
-                .status()?;
-            if !exit_status.success() {
-                Err("error: failed to copy to directory with `cp`")?;
-            }
+                .status()
+                .with_context(|| "Failed to build documentation")?;
         } else {
-            eprintln!("error: no `cp` utility found")
+            eprintln!("error: no `cp` utility found");
         }
+    } else {
+        return Err(anyhow!("error: failed to copy to directory with `cp`").into());
     }
 
-    // Create psudo docs/index.html which points to the one in docs/package/index.html
-    // Since github pages looks for index.html in the docs/ or root of the folder specified.
+    create_index_html_docs()?;
+
+    Ok(())
+}
+
+/// Create psudo docs/index.html which points to the one in docs/package/index.html
+/// Since github pages looks for index.html in the docs/ or root of the folder specified.
+fn create_index_html_docs() -> Result<(), DynError> {
     let arg_html = format!("<meta http-equiv=\"refresh\" content=\"0; url={PKG_NAME}\">",);
-    // let new_html_index = "target/doc/index.html";
     let new_html_index_path = "docs/index.html";
     let mut f_index_html = fs::File::create(new_html_index_path)?;
     if !f_index_html.metadata()?.is_file() {
         Err("error: failed to create file `{new_html_index}`")?;
     }
-    let write_all = f_index_html.write_all(String::from(&arg_html).as_bytes());
-    if let Err(err) = write_all {
+    if let Err(err) = f_index_html.write_all(String::from(&arg_html).as_bytes()) {
         Err(format!(
             "error: failed to write `{arg_html:#?}` to file `{new_html_index_path}`: {err:#?}"
         ))?
     };
-
     Ok(())
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-
-// // stdout must be configured with `Stdio::piped` in order to use
-// // `echo_child.stdout`
-// let echo_child = Command::new("echo")
-//     .arg("Oh no, a tpyo!")
-//     .stdout(Stdio::piped())
-//     .spawn()
-//     .expect("Failed to start echo process");
-//
-// // Note that `echo_child` is moved here, but we won't be needing
-// // `echo_child` anymore
-// let echo_out = echo_child.stdout.expect("Failed to open echo stdout");
-//
-// let mut sed_child = Command::new("sed")
-//     .arg("s/tpyo/typo/")
-//     .stdin(Stdio::from(echo_out))
-//     .stdout(Stdio::piped())
-//     .spawn()
-//     .expect("Failed to start sed process");
-//
-// let output = sed_child.wait_with_output().expect("Failed to wait on sed");
-// assert_eq!(b"Oh no, a typo!\n", output.stdout.as_slice());

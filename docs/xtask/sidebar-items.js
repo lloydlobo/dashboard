@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["PKG_NAME"],"fn":["dir_docs","dist_binary","dist_dir","dist_doc_xtask","dist_manpage","main","print_help","project_root","run","run_dist","run_dist_doc"],"type":["DynError","Result"]};
+window.SIDEBAR_ITEMS = {"constant":["PKG_NAME"],"fn":["create_index_html_docs","dir_docs","dist_binary","dist_dir","dist_doc_xtask","dist_manpage","main","print_help","project_root","run","run_dist","run_dist_doc","run_parse_json"],"type":["DynError","Result"]};
