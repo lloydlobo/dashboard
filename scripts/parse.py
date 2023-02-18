@@ -29,8 +29,23 @@ import json
 from typing import List
 from typing import Optional
 
-
 ################################################################################
+
+HELP_FIELDS = ",".join(
+    [
+        "created_at",
+        "description",
+        "disk_usage",
+        "id",
+        "name",
+        "pushed_at",
+        "repository_topics",
+        "ssh_url",
+        "stargazer_count",
+        "updated_at",
+        "url",
+    ]
+).strip()
 
 
 class Repository:
@@ -135,6 +150,14 @@ class ListEncoder(json.JSONEncoder):
 ################################################################################
 
 
+def printf(any_data):
+    """Print data as pretty-printed JSON."""
+    print(json.dumps(any_data, indent=4, cls=ListEncoder))
+
+
+################################################################################
+
+
 def parse_map_topics(item: dict) -> Optional[List[str]]:
     """
     Extracts topics from a dictionary.
@@ -189,10 +212,6 @@ def append_repositories(path):
 ################################################################################
 
 
-def printf(any_data):
-    print(json.dumps(any_data, indent=4, cls=ListEncoder))
-
-
 def extract_repo_data(repos: List[GitHubRepository]) -> List[dict]:
     """
     Extracts custom repository data from a list of GitHubRepository objects.
@@ -220,22 +239,101 @@ def extract_repo_data(repos: List[GitHubRepository]) -> List[dict]:
     return data
 
 
+def extract_repo_data_cli(
+    repos: List[GitHubRepository], fields: List[str]
+) -> List[dict]:
+    """
+    Extracts data from a list of GitHubRepository instances based on a list of field names.
+
+    Args:
+        repos (List[GitHubRepository]): A list of GitHubRepository instances to extract data from.
+        fields (List[str]): A list of field names to extract from each repository.
+
+    Returns:
+        List[dict]: A list of dictionaries containing extracted data for each repository.
+    """
+    data = []
+    for repo in repos:
+        new_list = {}
+        for field in fields:
+            if hasattr(repo, field):
+                new_list[field] = getattr(repo, field)
+            else:
+                print(f"Field '{field}' not found in GitHubRepository class.")
+        data.append(new_list)
+    if len(data) != len(repos):
+        print("Error while extracting")
+    else:
+        pass
+    return data
+
+
 ################################################################################
 
 
+# The `main` function uses the argparse module to parse command-line arguments,
+# and then it uses the append_repositories function to read repository data
+# from the README.json file. If the user specifies a list of fields to extract
+# using the --json argument, the function calls the extract_repo_data_cli
+# function with the specified fields. Otherwise, the function calls the
+# extract_repo_data function to extract all fields.
+#
+# The function returns a list of dictionaries containing the extracted data.
+# If the --json argument was used, the dictionaries will contain only the
+# specified fields. If no fields were specified, the dictionaries will
+# contain all fields. Finally, the function uses the json module to
+# pretty-print the output as a JSON-formatted string.
 def main() -> List[dict]:
     """
-    The main function of the script.
+    The main function of the script. This function can also parses command-line arguments
+    and uses them to extract data from GitHub repositories.
 
     Returns:
         List[dict]: A list of dictionaries containing custom repository data.
-
     """
-    repositories = append_repositories("README.json")
-    custom_data = extract_repo_data(repositories)
-    return custom_data
+    import argparse
 
+    parser = argparse.ArgumentParser(
+        description="Extract data from GitHub repositories",
+        # formatter_class=argparse.RawTextHelpFormatter,
+    )
+    parser.add_argument(
+        "--json",
+        metavar="N",
+        type=str,
+        nargs="+",
+        help=f"Specify one or more comma-separated fields for `--json`: [\
+               {HELP_FIELDS}\
+               ]",
+    )
+
+    args = parser.parse_args()
+    repositories = append_repositories("README.json")
+
+    if args.json:
+        fields = [field.strip() for field in args.json[0].split(",")]
+        data = extract_repo_data_cli(repositories, fields=fields)
+    else:  # No fields specified, return default.
+        data = extract_repo_data(repositories)
+    return data
+
+
+################################################################################
 
 if __name__ == "__main__":
     data = main()
     print(json.dumps(data, indent=4, cls=ListEncoder))
+
+################################################################################
+
+# Use dir() to get a list of available fields in the GitHubRepository class
+# available_fields = [f for f in dir(
+#     GitHubRepository) if not f.startswith("__")]
+# print(available_fields)
+# fields_help_str = "\n".join(available_fields)
+# available_fields = dir(GitHubRepository)
+# available_fields.remove("__doc__")  # Remove __doc__ field
+# for item in GitHubRepository.ke
+#     print(item)
+# for f in available_fields:
+#     print(f)
