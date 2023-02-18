@@ -1,6 +1,9 @@
 /target
 .env
 
-/research
 .idea.md
+
+# Data processed
+*.txt
+/research
 
