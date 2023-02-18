@@ -223,18 +223,15 @@ fn dist_doc_xtask() -> Result<(), DynError> {
 fn create_index_html_docs() -> Result<(), DynError> {
     let arg_html = format!("<meta http-equiv=\"refresh\" content=\"0; url={PKG_NAME}\">",);
     let new_html_index_path = "docs/index.html";
-
     let mut f_index_html = fs::File::create(new_html_index_path)?;
     if !f_index_html.metadata()?.is_file() {
-        Err("error: failed to create file `{new_html_index}`")?
+        Err("error: failed to create file `{new_html_index}`")?;
     }
-
     if let Err(err) = f_index_html.write_all(String::from(&arg_html).as_bytes()) {
         Err(format!(
             "error: failed to write `{arg_html:#?}` to file `{new_html_index_path}`: {err:#?}"
         ))?
     };
-
     Ok(())
 }
 
