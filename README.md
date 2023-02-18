@@ -7,18 +7,23 @@
 This is a dashboard to display all projects.
 
 <!--START_SECTION:tag_1-->
+* [dashboard](https://github.com/lloydlobo/dashboard) — Autogenerating Mega dashboard for all my projects
+* [lloydlobo](https://github.com/lloydlobo/lloydlobo) — Lloyd Lobo's GitHub profile.
+* [ytscriptrs](https://github.com/lloydlobo/ytscriptrs) — Parse youtube subtitles
+* [homely-recipes](https://github.com/lloydlobo/homely-recipes) — The site that recommends hand-picked home-made recipes prepa...
+* [penny](https://github.com/lloydlobo/penny) — A no-nonsense budget tracking Discord bot
+* [rssh](https://github.com/lloydlobo/rssh) — rssh or Rust Shell allows keeping maintainable bash aliases ...
+* [ml_rs](https://github.com/lloydlobo/ml_rs)
+* [mandelbrot](https://github.com/lloydlobo/mandelbrot) — The Mandelbrot set is a beautiful and fascinating mathematic...
+* [loa](https://github.com/lloydlobo/loa) — loa
+* [mausam](https://github.com/lloydlobo/mausam) — A weather update desktop notifier made with Rust.
+* [weather-app](https://github.com/lloydlobo/weather-app) — A functional stunning Weather App 🌥️   made using a sim...
 * [odin-rock-paper-scissors-docs](https://github.com/lloydlobo/odin-rock-paper-scissors-docs) — Documentation for the "Odin Rock Paper Scissors" Game
 * [styleguide-homely-recipes](https://github.com/lloydlobo/styleguide-homely-recipes) — Style, Brand, and Developer Guide for Homely Recipes
-* [dashboard](https://github.com/lloydlobo/dashboard) — Autogenerating Mega dashboard for all my projects
-* [weather-app](https://github.com/lloydlobo/weather-app) — A functional stunning Weather App 🌥️   made using a sim...
-* [lloydlobo](https://github.com/lloydlobo/lloydlobo) — Lloyd Lobo's GitHub profile.
-* [homely-recipes](https://github.com/lloydlobo/homely-recipes) — The site that recommends hand-picked home-made recipes prepa...
 * [wavefncollapse](https://github.com/lloydlobo/wavefncollapse) — wavefncollapse
-* [rssh](https://github.com/lloydlobo/rssh) — rssh or Rust Shell allows keeping maintainable bash aliases ...
 * [dio](https://github.com/lloydlobo/dio)
 * [rusty](https://github.com/lloydlobo/rusty)
 * [mononom-rust](https://github.com/lloydlobo/mononom-rust) — Projects built using Rust
-* [mausam](https://github.com/lloydlobo/mausam) — A weather update desktop notifier made with Rust.
 * [balance](https://github.com/lloydlobo/balance) — CLI tool to balance your budget
 * [infinityper](https://github.com/lloydlobo/infinityper) — Simulate typed text in a terminal
 * [treeleaf](https://github.com/lloydlobo/treeleaf) — Tree diagrams for the teriminal. Visualize mermaid-like data...
@@ -47,7 +52,6 @@ This is a dashboard to display all projects.
 * [mononom-web](https://github.com/lloydlobo/mononom-web) — A monorepo which hosts static site generator type websites
 * [odin-rock-paper-scissors](https://github.com/lloydlobo/odin-rock-paper-scissors) — A simple implementation of grade-school classic “rock pape...
 * [gameoflife-rs](https://github.com/lloydlobo/gameoflife-rs)
-* [ml_rs](https://github.com/lloydlobo/ml_rs)
 * [mononom-alkhwarizmi](https://github.com/lloydlobo/mononom-alkhwarizmi)
 * [mononom-scripting](https://github.com/lloydlobo/mononom-scripting) — Building JavaScript scripting CLI application for simple use...
 * [loremipsum](https://github.com/lloydlobo/loremipsum)
