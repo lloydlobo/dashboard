@@ -10,10 +10,14 @@ use std::{
 use anyhow::{anyhow, Context};
 use man::prelude::*;
 
+////////////////////////////////////////////////////////////////////////////////
+
 type Result<T, E> = anyhow::Result<T, E>;
 type DynError = Box<dyn std::error::Error>;
 
 const PKG_NAME: &str = "dashboard";
+
+////////////////////////////////////////////////////////////////////////////////
 
 fn main() {
     if let Err(e) = run() {
@@ -21,6 +25,8 @@ fn main() {
         std::process::exit(-1);
     }
 }
+
+////////////////////////////////////////////////////////////////////////////////
 
 fn run() -> Result<(), DynError> {
     let task: Option<String> = env::args().nth(1);
@@ -32,6 +38,8 @@ fn run() -> Result<(), DynError> {
     }
     Ok(())
 }
+
+////////////////////////////////////////////////////////////////////////////////
 
 fn print_help() {
     eprintln!(
@@ -49,45 +57,43 @@ ARGS:
     )
 }
 
-// ```sh
-// Append to the given files, do not overwrite:
-// echo "example" | tee -a path/to/file
-// Print standard input to the terminal, and also pipe it into another program for further processing:
-// echo "example" | tee /dev/tty | xargs printf "[%s]"
-// Create a directory called "example", count the number of characters in "example" and write "example" to the terminal:
-// echo "example" | tee >(xargs mkdir) >(wc -c)
-// let cargo: String = env::var("CARGO").unwrap_or_else(|_| "cargo".to_string());
-// ```
+////////////////////////////////////////////////////////////////////////////////
+
+/// Runs the `parse.py` script and pipes its output to a file.
+///
+/// # Errors
+///
+/// Returns an error if the `python3` command or `tee` command fails to execute,
+/// or if there is an error waiting for the output.
 fn run_parse_json() -> Result<(), DynError> {
-    // Fetches the environment variable `key` from the current process.
+    // Fetches the environment variable `python3` from the current process, or uses "python3"
+    // as a fallback value if the variable is not set.
     let python3: String = env::var("python3").unwrap_or_else(|_| "python3".to_string());
     let cmd1 = Command::new(python3)
         .current_dir(project_root())
         .args(["scripts/parse.py"])
         .stdout(Stdio::piped())
         .spawn()
-        .with_context(|| "Failed to spawn process")?;
-    if let Some(err) = cmd1.stderr {
-        Err(anyhow!("`python3 scripts/parse.py` failed: {err:?}", err = err))?
-    };
-    // Read from standard input and write to standard output and files (or commands).
-    // Copy standard input to each file, and also to standard output:
+        .with_context(|| "Spawning `python3 scripts/parse.py` failed")?;
+
+    // Runs the `python3 scripts/parse.py` command and pipes (with `tee`) its output to a file.
+    // * `tee` - Read from standard input and write to standard output and files (or commands).
     let cmd2 = Command::new("tee")
-        .arg("parsed.json")
+        .args(["parsed.json"])
         .stdin(cmd1.stdout.unwrap())
         .spawn()
         .with_context(|| "Failed to spawn process")?;
 
-    let output = cmd2.wait_with_output().with_context(|| "Failed to wait for process")?;
-    let buf: &[u8] = &output.stdout;
-    io::stdout().lock().write_all(buf).with_context(|| "Failed to write to stdout")?;
+    // Waits for the output of the `tee` command and writes it to stdout.
+    io::stdout()
+        .lock()
+        .write_all(&cmd2.wait_with_output().with_context(|| "Failed to wait for process")?.stdout)
+        .with_context(|| "Failed to write to stdout")?;
 
     Ok(())
 }
 
-fn project_root() -> PathBuf {
-    Path::new(&env!("CARGO_MANIFEST_DIR")).ancestors().nth(1).unwrap().to_path_buf()
-}
+////////////////////////////////////////////////////////////////////////////////
 
 /// Removes a directory at this path, after removing all its contents. Use carefully!
 fn run_dist() -> Result<(), DynError> {
@@ -98,6 +104,22 @@ fn run_dist() -> Result<(), DynError> {
 
     Ok(())
 }
+////////////////////////////////////////////////////////////////////////////////
+
+fn run_dist_doc() -> Result<(), DynError> {
+    let _ = fs::remove_dir_all(dir_docs());
+    dist_doc_xtask()?;
+
+    Ok(())
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+fn project_root() -> PathBuf {
+    Path::new(&env!("CARGO_MANIFEST_DIR")).ancestors().nth(1).unwrap().to_path_buf()
+}
+
+////////////////////////////////////////////////////////////////////////////////
 
 fn dist_dir() -> PathBuf {
     project_root().join("target/dist")
@@ -135,13 +157,6 @@ fn dist_binary() -> Result<(), DynError> {
 fn dist_manpage() -> Result<(), DynError> {
     let page = Manual::new(PKG_NAME).about("Wave function collapse").render();
     fs::write(dist_dir().join(format!("{PKG_NAME}.man")), page)?;
-
-    Ok(())
-}
-
-fn run_dist_doc() -> Result<(), DynError> {
-    let _ = fs::remove_dir_all(dir_docs());
-    dist_doc_xtask()?;
 
     Ok(())
 }
@@ -204,6 +219,8 @@ fn dist_doc_xtask() -> Result<(), DynError> {
 
     Ok(())
 }
+
+////////////////////////////////////////////////////////////////////////////////
 
 // // stdout must be configured with `Stdio::piped` in order to use
 // // `echo_child.stdout`
