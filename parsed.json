@@ -1,718 +1,823 @@
 [
-    {
-        "name": "odin-rock-paper-scissors-docs",
-        "description": "Documentation for the \"Odin Rock Paper Scissors\" Game",
-        "repository_topics": [
-            "documentation",
-            "rock-paper-scissors",
-            "docusaurus",
-            "docusaurus2",
-            "javascript",
-            "javascript-game",
-            "theodinproject"
-        ]
-    },
-    {
-        "name": "styleguide-homely-recipes",
-        "description": "Style, Brand, and Developer Guide for Homely Recipes",
-        "repository_topics": []
-    },
-    {
-        "name": "dashboard",
-        "description": "Autogenerating Mega dashboard for all my projects",
-        "repository_topics": []
-    },
-    {
-        "name": "weather-app",
-        "description": "A functional stunning Weather App \ud83c\udf25\ufe0f   made using a simple yet powerful API. \ud83d\udc40  Experience weather conditions with vibrant imagery and \u2708 travel anywhere in the \ud83c\udf0d world!",
-        "repository_topics": [
-            "javascript",
-            "css",
-            "html",
-            "api",
-            "weather",
-            "weather-app",
-            "weather-api"
-        ]
-    },
-    {
-        "name": "lloydlobo",
-        "description": "Lloyd Lobo's GitHub profile.",
-        "repository_topics": [
-            "github",
-            "readme",
-            "profile",
-            "profile-readme",
-            "readme-badges",
-            "badges",
-            "readme-md",
-            "awesome-readme",
-            "github-actions"
-        ]
-    },
-    {
-        "name": "homely-recipes",
-        "description": "The site that recommends hand-picked home-made recipes prepared with love and care.   ",
-        "repository_topics": [
-            "recipe-website",
-            "jamstack",
-            "html-css-javascript",
-            "github-pages",
-            "material-design"
-        ]
-    },
-    {
-        "name": "wavefncollapse",
-        "description": "wavefncollapse",
-        "repository_topics": []
-    },
-    {
-        "name": "rssh",
-        "description": "rssh or Rust Shell allows keeping maintainable bash aliases from within Rust",
-        "repository_topics": []
-    },
-    {
-        "name": "dio",
-        "description": "",
-        "repository_topics": []
-    },
-    {
-        "name": "rusty",
-        "description": "",
-        "repository_topics": []
-    },
-    {
-        "name": "mononom-rust",
-        "description": "Projects built using Rust",
-        "repository_topics": [
-            "monorepo",
-            "rust",
-            "rust-lang"
-        ]
-    },
-    {
-        "name": "mausam",
-        "description": "A weather update desktop notifier made with Rust.",
-        "repository_topics": [
-            "api",
-            "async",
-            "cli",
-            "desktop",
-            "notification",
-            "openweathermap",
-            "rust",
-            "tokio",
-            "weather"
-        ]
-    },
-    {
-        "name": "balance",
-        "description": "CLI tool to balance your budget",
-        "repository_topics": [
-            "accounting",
-            "budget",
-            "finance",
-            "cli",
-            "yaml-accounting"
-        ]
-    },
-    {
-        "name": "infinityper",
-        "description": "Simulate typed text in a terminal",
-        "repository_topics": []
-    },
-    {
-        "name": "treeleaf",
-        "description": "Tree diagrams for the teriminal. Visualize mermaid-like data on the command-line.",
-        "repository_topics": [
-            "cli",
-            "diagram",
-            "interactive",
-            "mermaid",
-            "rust",
-            "tree",
-            "tree-structure",
-            "visualizer"
-        ]
-    },
-    {
-        "name": "mononom-api",
-        "description": "",
-        "repository_topics": [
-            "api",
-            "express",
-            "node",
-            "turborepo"
-        ]
-    },
-    {
-        "name": "jot",
-        "description": "",
-        "repository_topics": []
-    },
-    {
-        "name": "rustspace",
-        "description": "",
-        "repository_topics": []
-    },
-    {
-        "name": "rust-breakout-game",
-        "description": "Easy to play & build Breakout Game binary built in Rust with macroquad game library.",
-        "repository_topics": [
-            "rust",
-            "binary",
-            "breakout-game",
-            "macroquad"
-        ]
-    },
-    {
-        "name": "rust_use-case_fibonacci",
-        "description": "Generate Fibonacci numbers instantly.",
-        "repository_topics": [
-            "benchmark",
-            "binary",
-            "fibonacci",
-            "fibonacci-sequence",
-            "hashmap",
-            "rust",
-            "criterion"
-        ]
-    },
-    {
-        "name": "pompom",
-        "description": "",
-        "repository_topics": []
-    },
-    {
-        "name": "jots",
-        "description": "",
-        "repository_topics": []
-    },
-    {
-        "name": "retro-racer",
-        "description": "",
-        "repository_topics": []
-    },
-    {
-        "name": "spaceshooter",
-        "description": "",
-        "repository_topics": []
-    },
-    {
-        "name": "buck",
-        "description": "An envelope style budgeting app",
-        "repository_topics": []
-    },
-    {
-        "name": "amazone",
-        "description": "E-Commerce Next.js, MongoDB, and Tailwind starter.",
-        "repository_topics": []
-    },
-    {
-        "name": "meinekraft",
-        "description": "A minecraft clone built with React, Typescript, and ThreeJS.",
-        "repository_topics": []
-    },
-    {
-        "name": "dashboard-admin",
-        "description": "",
-        "repository_topics": [
-            "dashboard",
-            "svelte",
-            "airbnb-eslint",
-            "typescript",
-            "grid-layout",
-            "playwright"
-        ]
-    },
-    {
-        "name": "neuraone",
-        "description": "",
-        "repository_topics": []
-    },
-    {
-        "name": "go-react-todo",
-        "description": "A todo CRUD app with Go as backedn server & React as client side frontend",
-        "repository_topics": []
-    },
-    {
-        "name": "vortex-ball-collider",
-        "description": "",
-        "repository_topics": []
-    },
-    {
-        "name": "etcher-sketcher",
-        "description": "Sketch and etch your unique pixel art idea",
-        "repository_topics": [
-            "animation",
-            "art",
-            "dom-manipulation",
-            "etch-a-sketch",
-            "pixel-art",
-            "typescript",
-            "vite"
-        ]
-    },
-    {
-        "name": "cryptoculator",
-        "description": "A calculator app for The Odin Project",
-        "repository_topics": [
-            "calculator",
-            "regex",
-            "tailwindcss",
-            "typescript",
-            "vite",
-            "api",
-            "express",
-            "supabase"
-        ]
-    },
-    {
-        "name": "extensions",
-        "description": "",
-        "repository_topics": []
-    },
-    {
-        "name": "cryptoku",
-        "description": "The API fetches the latest cryptocurrency pricing by market cap. Get rankings, and details of 24/7 & 7 days among others.",
-        "repository_topics": [
-            "api",
-            "axios",
-            "cheerio",
-            "cryptocurrency",
-            "express",
-            "heroku",
-            "nodejs",
-            "rapidapi",
-            "typescript"
-        ]
-    },
-    {
-        "name": "quickpath",
-        "description": "Visualize shortest path between two points with algorithms",
-        "repository_topics": [
-            "algorithms",
-            "pathfinding",
-            "visualization",
-            "javascript",
-            "react"
-        ]
-    },
-    {
-        "name": "mononom-web-apps",
-        "description": "Web Apps that use neural networks, machine learning, and other fancy keywords..",
-        "repository_topics": [
-            "machine-learning",
-            "neural-network",
-            "webapp",
-            "nolibraries",
-            "typescript",
-            "nx-workspace"
-        ]
-    },
-    {
-        "name": "mononom-web",
-        "description": "A monorepo which hosts static site generator type websites",
-        "repository_topics": [
-            "nx-workspace",
-            "ssg",
-            "static-site-generator",
-            "mono-repository",
-            "monorepo"
-        ]
-    },
-    {
-        "name": "odin-rock-paper-scissors",
-        "description": "A simple implementation of grade-school classic \u201crock paper scissors\u201d for The Odin Project (TOP) web development curriculum.",
-        "repository_topics": [
-            "fundamentals",
-            "game",
-            "javascript",
-            "javascript-game",
-            "rock-paper-scissors",
-            "theodinproject"
-        ]
-    },
-    {
-        "name": "gameoflife-rs",
-        "description": "",
-        "repository_topics": []
-    },
-    {
-        "name": "ml_rs",
-        "description": "",
-        "repository_topics": []
-    },
-    {
-        "name": "mononom-alkhwarizmi",
-        "description": "",
-        "repository_topics": []
-    },
-    {
-        "name": "mononom-scripting",
-        "description": "Building JavaScript scripting CLI application for simple use cases.",
-        "repository_topics": []
-    },
-    {
-        "name": "loremipsum",
-        "description": "",
-        "repository_topics": []
-    },
-    {
-        "name": "advent-of-code",
-        "description": "",
-        "repository_topics": []
-    },
-    {
-        "name": "leetcode",
-        "description": "leetcode problem solution documented",
-        "repository_topics": [
-            "leetcode"
-        ]
-    },
-    {
-        "name": "flashcarte",
-        "description": "",
-        "repository_topics": []
-    },
-    {
-        "name": "todo",
-        "description": "",
-        "repository_topics": []
-    },
-    {
-        "name": "memo",
-        "description": "",
-        "repository_topics": []
-    },
-    {
-        "name": "config",
-        "description": "dotfiles",
-        "repository_topics": []
-    },
-    {
-        "name": "devlog",
-        "description": "Developer Log detailing my learnings in Tech",
-        "repository_topics": [
-            "devlog",
-            "emacs",
-            "tech"
-        ]
-    },
-    {
-        "name": "course-cs50",
-        "description": "CS50 Course Harvard",
-        "repository_topics": []
-    },
-    {
-        "name": "budjet",
-        "description": "A ynab like budgeting app.",
-        "repository_topics": []
-    },
-    {
-        "name": "fyne",
-        "description": "fyne",
-        "repository_topics": []
-    },
-    {
-        "name": "doyouenglish",
-        "description": "automate grammer fixes of your websites",
-        "repository_topics": []
-    },
-    {
-        "name": "thegameoflife",
-        "description": "Game of life terminal emulation.",
-        "repository_topics": []
-    },
-    {
-        "name": "studybuddy",
-        "description": "Interactive note taking CLI application built with Go, Cobra, and promptui.",
-        "repository_topics": []
-    },
-    {
-        "name": "chip8",
-        "description": "A chip8 emulator powered by Go and SDL2.",
-        "repository_topics": []
-    },
-    {
-        "name": "fmtdot",
-        "description": "fmtdot formats all files with given extension in a directory.",
-        "repository_topics": []
-    },
-    {
-        "name": "pswdhash",
-        "description": "pswdhash CLI hashes passwords using bcrypt.",
-        "repository_topics": []
-    },
-    {
-        "name": "bak",
-        "description": "backup files in the current directory to a location",
-        "repository_topics": []
-    },
-    {
-        "name": "prep",
-        "description": "prep prepares CLI windows automation to run, test, and build from project directory source files.",
-        "repository_topics": []
-    },
-    {
-        "name": "robotgo",
-        "description": "Automation done right with robotgo.",
-        "repository_topics": []
-    },
-    {
-        "name": "okejoke",
-        "description": "okejoke gathers jokes on the fly in your CLI.",
-        "repository_topics": []
-    },
-    {
-        "name": "progcli",
-        "description": "",
-        "repository_topics": []
-    },
-    {
-        "name": "go-dad-jokes-cli",
-        "description": "Go + Cobra for dad jokes API Cli usage",
-        "repository_topics": []
-    },
-    {
-        "name": "go-todo-client",
-        "description": "Client side TODO app for Go backend server",
-        "repository_topics": []
-    },
-    {
-        "name": "hello-go",
-        "description": "go starter repo test",
-        "repository_topics": []
-    },
-    {
-        "name": "go-greetings",
-        "description": "Tutorial: Create a Go module",
-        "repository_topics": []
-    },
-    {
-        "name": "bashingthrudashell",
-        "description": "",
-        "repository_topics": []
-    },
-    {
-        "name": "fzz",
-        "description": "",
-        "repository_topics": []
-    },
-    {
-        "name": "calcy",
-        "description": "A calculator app for The Odin Project",
-        "repository_topics": [
-            "calculator",
-            "odin-project",
-            "regex",
-            "sveltekit",
-            "typed",
-            "typescript"
-        ]
-    },
-    {
-        "name": "progress",
-        "description": "A tool to stay motivated and fulfill the dictum of progress over perfection. You are already perfect. What you are going through is required for what you aspire to be. And finally to know is-ness. That's a fancy one huh?",
-        "repository_topics": [
-            "progress",
-            "projects",
-            "timeline"
-        ]
-    },
-    {
-        "name": "fem-splitter",
-        "description": "Got to split money while tipping? Splitter to the rescue! A Frontend Mentor challenge Project",
-        "repository_topics": [
-            "challenge",
-            "fem",
-            "frontend-mentor",
-            "money",
-            "svelte",
-            "tip-calculator"
-        ]
-    },
-    {
-        "name": "test",
-        "description": "test repository",
-        "repository_topics": []
-    },
-    {
-        "name": ".dotfiles",
-        "description": "",
-        "repository_topics": []
-    },
-    {
-        "name": "astronvim_config",
-        "description": "Astro Nvim Config Files",
-        "repository_topics": []
-    },
-    {
-        "name": "wasm-game-of-life",
-        "description": "Classic Game Of Life built in WebAssembly. Rust + JavaScript on the Web.",
-        "repository_topics": []
-    },
-    {
-        "name": "tense-text-transform",
-        "description": "Change the tense of your sentences with this simple app.",
-        "repository_topics": [
-            "grammar",
-            "natural-language-processing",
-            "nlp",
-            "tenses",
-            "text-processing"
-        ]
-    },
-    {
-        "name": "zoomies",
-        "description": "",
-        "repository_topics": []
-    },
-    {
-        "name": "rust-node_use-cases",
-        "description": "A practical use-case of using Rust from Node.  Benchmark the classical Fibonacci Sequence with a million runs. Add any function you'd like.",
-        "repository_topics": [
-            "benchmark",
-            "ffi",
-            "ffi-napi",
-            "fibonacci",
-            "node",
-            "rust",
-            "rust-lang"
-        ]
-    },
-    {
-        "name": "api",
-        "description": "",
-        "repository_topics": [
-            "api",
-            "axios",
-            "cheerio",
-            "express",
-            "nodejs",
-            "typescript",
-            "heroku-deployment"
-        ]
-    },
-    {
-        "name": "quicknote",
-        "description": "Dev Notes with schemas built with Dendron",
-        "repository_topics": []
-    },
-    {
-        "name": "live-api",
-        "description": "Demo API to host on RapidAPI",
-        "repository_topics": [
-            "api",
-            "axios",
-            "cheerio",
-            "concurrently",
-            "express",
-            "nodejs",
-            "nodemon",
-            "typescript",
-            "rapidapi"
-        ]
-    },
-    {
-        "name": "sortviz",
-        "description": "Vizualize sorting algorithms in slow motion",
-        "repository_topics": []
-    },
-    {
-        "name": "chat-decentralized",
-        "description": "A decentralized chat room using Gun.js",
-        "repository_topics": [
-            "chat",
-            "chat-app",
-            "decentralized-applications",
-            "gunjs",
-            "svelete"
-        ]
-    },
-    {
-        "name": "blog",
-        "description": "",
-        "repository_topics": []
-    },
-    {
-        "name": "neura-driver",
-        "description": "A simple self-driving car application with a neural network model.",
-        "repository_topics": [
-            "javascript",
-            "machine-learning",
-            "machine-learning-algorithms",
-            "neural-network",
-            "self-driving-cars",
-            "svelte",
-            "typescript",
-            "vite",
-            "webapp"
-        ]
-    },
-    {
-        "name": "fem-tip-calculator-app",
-        "description": "Your challenge is to build out this tip calculator app and get it looking as close to the design as possible.",
-        "repository_topics": [
-            "calculator",
-            "frontend-mentor"
-        ]
-    },
-    {
-        "name": "geomeasure",
-        "description": "Geomeasure measures distance using GPS and that too without without any API!",
-        "repository_topics": [
-            "distance",
-            "gps-location",
-            "app",
-            "javascript",
-            "mobile-app",
-            "noapi",
-            "typescript",
-            "mathematics"
-        ]
-    },
-    {
-        "name": "pwa-starter",
-        "description": "Starter kit to build a quick PWA that aligns with lighthouse's performance checks",
-        "repository_topics": []
-    },
-    {
-        "name": "cli-devquiz",
-        "description": "",
-        "repository_topics": []
-    },
-    {
-        "name": "odin-recipes",
-        "description": "Odin's Recipes is a community-driven food brand providing trusted resources to home cooks. Cooks who are feeling adventurous and ready to cook up a storm.",
-        "repository_topics": [
-            "recipes",
-            "recipe-website",
-            "the-odin-project",
-            "html5",
-            "css",
-            "javascript"
-        ]
-    },
-    {
-        "name": "odin-thors-landing",
-        "description": "Like Thor's mighty hammer, wield the power of security for your crypto needs. Back up your wallet and leave it to Thor to protect it at all costs.",
-        "repository_topics": [
-            "landing-page",
-            "website",
-            "web",
-            "html-css-javascript",
-            "theodinproject"
-        ]
-    },
-    {
-        "name": "keybindings",
-        "description": "",
-        "repository_topics": []
-    },
-    {
-        "name": "articles",
-        "description": "",
-        "repository_topics": []
-    }
+  {
+    "name": "dashboard",
+    "url": "https://github.com/lloydlobo/dashboard",
+    "description": "Autogenerating Mega dashboard for all my projects",
+    "repository_topics": []
+  },
+  {
+    "name": "lloydlobo",
+    "url": "https://github.com/lloydlobo/lloydlobo",
+    "description": "Lloyd Lobo's GitHub profile.",
+    "repository_topics": [
+      "github",
+      "readme",
+      "profile",
+      "profile-readme",
+      "readme-badges",
+      "badges",
+      "readme-md",
+      "awesome-readme",
+      "github-actions"
+    ]
+  },
+  {
+    "name": "ytscriptrs",
+    "url": "https://github.com/lloydlobo/ytscriptrs",
+    "description": "Parse youtube subtitles",
+    "repository_topics": []
+  },
+  {
+    "name": "homely-recipes",
+    "url": "https://github.com/lloydlobo/homely-recipes",
+    "description": "The site that recommends hand-picked home-made recipes prepared with love and care.   ",
+    "repository_topics": [
+      "recipe-website",
+      "jamstack",
+      "html-css-javascript",
+      "github-pages",
+      "material-design"
+    ]
+  },
+  {
+    "name": "penny",
+    "url": "https://github.com/lloydlobo/penny",
+    "description": "A no-nonsense budget tracking Discord bot",
+    "repository_topics": [
+      "api",
+      "bot",
+      "budget",
+      "discord",
+      "discord-bot",
+      "finance"
+    ]
+  },
+  {
+    "name": "rssh",
+    "url": "https://github.com/lloydlobo/rssh",
+    "description": "rssh or Rust Shell allows keeping maintainable bash aliases from within Rust",
+    "repository_topics": []
+  },
+  {
+    "name": "ml_rs",
+    "url": "https://github.com/lloydlobo/ml_rs",
+    "description": "",
+    "repository_topics": []
+  },
+  {
+    "name": "mandelbrot",
+    "url": "https://github.com/lloydlobo/mandelbrot",
+    "description": "The Mandelbrot set is a beautiful and fascinating mathematical object that has captured the imagination of mathematicians, artists, and computer scientists for decades.",
+    "repository_topics": [
+      "ascii-art",
+      "image-processing",
+      "mandelbrot-fractal",
+      "mandelbrot-set"
+    ]
+  },
+  {
+    "name": "loa",
+    "url": "https://github.com/lloydlobo/loa",
+    "description": "loa",
+    "repository_topics": []
+  },
+  {
+    "name": "mausam",
+    "url": "https://github.com/lloydlobo/mausam",
+    "description": "A weather update desktop notifier made with Rust.",
+    "repository_topics": [
+      "api",
+      "async",
+      "cli",
+      "desktop",
+      "notification",
+      "openweathermap",
+      "rust",
+      "tokio",
+      "weather"
+    ]
+  },
+  {
+    "name": "weather-app",
+    "url": "https://github.com/lloydlobo/weather-app",
+    "description": "A functional stunning Weather App 🌥️   made using a simple yet powerful API. 👀  Experience weather conditions with vibrant imagery and ✈ travel anywhere in the 🌍 world!",
+    "repository_topics": [
+      "javascript",
+      "css",
+      "html",
+      "api",
+      "weather",
+      "weather-app",
+      "weather-api"
+    ]
+  },
+  {
+    "name": "odin-rock-paper-scissors-docs",
+    "url": "https://github.com/lloydlobo/odin-rock-paper-scissors-docs",
+    "description": "Documentation for the \"Odin Rock Paper Scissors\" Game",
+    "repository_topics": [
+      "documentation",
+      "rock-paper-scissors",
+      "docusaurus",
+      "docusaurus2",
+      "javascript",
+      "javascript-game",
+      "theodinproject"
+    ]
+  },
+  {
+    "name": "styleguide-homely-recipes",
+    "url": "https://github.com/lloydlobo/styleguide-homely-recipes",
+    "description": "Style, Brand, and Developer Guide for Homely Recipes",
+    "repository_topics": []
+  },
+  {
+    "name": "wavefncollapse",
+    "url": "https://github.com/lloydlobo/wavefncollapse",
+    "description": "wavefncollapse",
+    "repository_topics": []
+  },
+  {
+    "name": "dio",
+    "url": "https://github.com/lloydlobo/dio",
+    "description": "",
+    "repository_topics": []
+  },
+  {
+    "name": "rusty",
+    "url": "https://github.com/lloydlobo/rusty",
+    "description": "",
+    "repository_topics": []
+  },
+  {
+    "name": "mononom-rust",
+    "url": "https://github.com/lloydlobo/mononom-rust",
+    "description": "Projects built using Rust",
+    "repository_topics": ["monorepo", "rust", "rust-lang"]
+  },
+  {
+    "name": "balance",
+    "url": "https://github.com/lloydlobo/balance",
+    "description": "CLI tool to balance your budget",
+    "repository_topics": [
+      "accounting",
+      "budget",
+      "finance",
+      "cli",
+      "yaml-accounting"
+    ]
+  },
+  {
+    "name": "infinityper",
+    "url": "https://github.com/lloydlobo/infinityper",
+    "description": "Simulate typed text in a terminal",
+    "repository_topics": []
+  },
+  {
+    "name": "treeleaf",
+    "url": "https://github.com/lloydlobo/treeleaf",
+    "description": "Tree diagrams for the teriminal. Visualize mermaid-like data on the command-line.",
+    "repository_topics": [
+      "cli",
+      "diagram",
+      "interactive",
+      "mermaid",
+      "rust",
+      "tree",
+      "tree-structure",
+      "visualizer"
+    ]
+  },
+  {
+    "name": "mononom-api",
+    "url": "https://github.com/lloydlobo/mononom-api",
+    "description": "",
+    "repository_topics": ["api", "express", "node", "turborepo"]
+  },
+  {
+    "name": "jot",
+    "url": "https://github.com/lloydlobo/jot",
+    "description": "",
+    "repository_topics": []
+  },
+  {
+    "name": "rustspace",
+    "url": "https://github.com/lloydlobo/rustspace",
+    "description": "",
+    "repository_topics": []
+  },
+  {
+    "name": "rust-breakout-game",
+    "url": "https://github.com/lloydlobo/rust-breakout-game",
+    "description": "Easy to play & build Breakout Game binary built in Rust with macroquad game library.",
+    "repository_topics": ["rust", "binary", "breakout-game", "macroquad"]
+  },
+  {
+    "name": "rust_use-case_fibonacci",
+    "url": "https://github.com/lloydlobo/rust_use-case_fibonacci",
+    "description": "Generate Fibonacci numbers instantly.",
+    "repository_topics": [
+      "benchmark",
+      "binary",
+      "fibonacci",
+      "fibonacci-sequence",
+      "hashmap",
+      "rust",
+      "criterion"
+    ]
+  },
+  {
+    "name": "pompom",
+    "url": "https://github.com/lloydlobo/pompom",
+    "description": "",
+    "repository_topics": []
+  },
+  {
+    "name": "jots",
+    "url": "https://github.com/lloydlobo/jots",
+    "description": "",
+    "repository_topics": []
+  },
+  {
+    "name": "retro-racer",
+    "url": "https://github.com/lloydlobo/retro-racer",
+    "description": "",
+    "repository_topics": []
+  },
+  {
+    "name": "spaceshooter",
+    "url": "https://github.com/lloydlobo/spaceshooter",
+    "description": "",
+    "repository_topics": []
+  },
+  {
+    "name": "buck",
+    "url": "https://github.com/lloydlobo/buck",
+    "description": "An envelope style budgeting app",
+    "repository_topics": []
+  },
+  {
+    "name": "amazone",
+    "url": "https://github.com/lloydlobo/amazone",
+    "description": "E-Commerce Next.js, MongoDB, and Tailwind starter.",
+    "repository_topics": []
+  },
+  {
+    "name": "meinekraft",
+    "url": "https://github.com/lloydlobo/meinekraft",
+    "description": "A minecraft clone built with React, Typescript, and ThreeJS.",
+    "repository_topics": []
+  },
+  {
+    "name": "dashboard-admin",
+    "url": "https://github.com/lloydlobo/dashboard-admin",
+    "description": "",
+    "repository_topics": [
+      "dashboard",
+      "svelte",
+      "airbnb-eslint",
+      "typescript",
+      "grid-layout",
+      "playwright"
+    ]
+  },
+  {
+    "name": "neuraone",
+    "url": "https://github.com/lloydlobo/neuraone",
+    "description": "",
+    "repository_topics": []
+  },
+  {
+    "name": "go-react-todo",
+    "url": "https://github.com/lloydlobo/go-react-todo",
+    "description": "A todo CRUD app with Go as backedn server & React as client side frontend",
+    "repository_topics": []
+  },
+  {
+    "name": "vortex-ball-collider",
+    "url": "https://github.com/lloydlobo/vortex-ball-collider",
+    "description": "",
+    "repository_topics": []
+  },
+  {
+    "name": "etcher-sketcher",
+    "url": "https://github.com/lloydlobo/etcher-sketcher",
+    "description": "Sketch and etch your unique pixel art idea",
+    "repository_topics": [
+      "animation",
+      "art",
+      "dom-manipulation",
+      "etch-a-sketch",
+      "pixel-art",
+      "typescript",
+      "vite"
+    ]
+  },
+  {
+    "name": "cryptoculator",
+    "url": "https://github.com/lloydlobo/cryptoculator",
+    "description": "A calculator app for The Odin Project",
+    "repository_topics": [
+      "calculator",
+      "regex",
+      "tailwindcss",
+      "typescript",
+      "vite",
+      "api",
+      "express",
+      "supabase"
+    ]
+  },
+  {
+    "name": "extensions",
+    "url": "https://github.com/lloydlobo/extensions",
+    "description": "",
+    "repository_topics": []
+  },
+  {
+    "name": "cryptoku",
+    "url": "https://github.com/lloydlobo/cryptoku",
+    "description": "The API fetches the latest cryptocurrency pricing by market cap. Get rankings, and details of 24/7 & 7 days among others.",
+    "repository_topics": [
+      "api",
+      "axios",
+      "cheerio",
+      "cryptocurrency",
+      "express",
+      "heroku",
+      "nodejs",
+      "rapidapi",
+      "typescript"
+    ]
+  },
+  {
+    "name": "quickpath",
+    "url": "https://github.com/lloydlobo/quickpath",
+    "description": "Visualize shortest path between two points with algorithms",
+    "repository_topics": [
+      "algorithms",
+      "pathfinding",
+      "visualization",
+      "javascript",
+      "react"
+    ]
+  },
+  {
+    "name": "mononom-web-apps",
+    "url": "https://github.com/lloydlobo/mononom-web-apps",
+    "description": "Web Apps that use neural networks, machine learning, and other fancy keywords..",
+    "repository_topics": [
+      "machine-learning",
+      "neural-network",
+      "webapp",
+      "nolibraries",
+      "typescript",
+      "nx-workspace"
+    ]
+  },
+  {
+    "name": "mononom-web",
+    "url": "https://github.com/lloydlobo/mononom-web",
+    "description": "A monorepo which hosts static site generator type websites",
+    "repository_topics": [
+      "nx-workspace",
+      "ssg",
+      "static-site-generator",
+      "mono-repository",
+      "monorepo"
+    ]
+  },
+  {
+    "name": "odin-rock-paper-scissors",
+    "url": "https://github.com/lloydlobo/odin-rock-paper-scissors",
+    "description": "A simple implementation of grade-school classic “rock paper scissors” for The Odin Project (TOP) web development curriculum.",
+    "repository_topics": [
+      "fundamentals",
+      "game",
+      "javascript",
+      "javascript-game",
+      "rock-paper-scissors",
+      "theodinproject"
+    ]
+  },
+  {
+    "name": "gameoflife-rs",
+    "url": "https://github.com/lloydlobo/gameoflife-rs",
+    "description": "",
+    "repository_topics": []
+  },
+  {
+    "name": "mononom-alkhwarizmi",
+    "url": "https://github.com/lloydlobo/mononom-alkhwarizmi",
+    "description": "",
+    "repository_topics": []
+  },
+  {
+    "name": "mononom-scripting",
+    "url": "https://github.com/lloydlobo/mononom-scripting",
+    "description": "Building JavaScript scripting CLI application for simple use cases.",
+    "repository_topics": []
+  },
+  {
+    "name": "loremipsum",
+    "url": "https://github.com/lloydlobo/loremipsum",
+    "description": "",
+    "repository_topics": []
+  },
+  {
+    "name": "advent-of-code",
+    "url": "https://github.com/lloydlobo/advent-of-code",
+    "description": "",
+    "repository_topics": []
+  },
+  {
+    "name": "leetcode",
+    "url": "https://github.com/lloydlobo/leetcode",
+    "description": "leetcode problem solution documented",
+    "repository_topics": ["leetcode"]
+  },
+  {
+    "name": "flashcarte",
+    "url": "https://github.com/lloydlobo/flashcarte",
+    "description": "",
+    "repository_topics": []
+  },
+  {
+    "name": "todo",
+    "url": "https://github.com/lloydlobo/todo",
+    "description": "",
+    "repository_topics": []
+  },
+  {
+    "name": "memo",
+    "url": "https://github.com/lloydlobo/memo",
+    "description": "",
+    "repository_topics": []
+  },
+  {
+    "name": "config",
+    "url": "https://github.com/lloydlobo/config",
+    "description": "dotfiles",
+    "repository_topics": []
+  },
+  {
+    "name": "devlog",
+    "url": "https://github.com/lloydlobo/devlog",
+    "description": "Developer Log detailing my learnings in Tech",
+    "repository_topics": ["devlog", "emacs", "tech"]
+  },
+  {
+    "name": "course-cs50",
+    "url": "https://github.com/lloydlobo/course-cs50",
+    "description": "CS50 Course Harvard",
+    "repository_topics": []
+  },
+  {
+    "name": "budjet",
+    "url": "https://github.com/lloydlobo/budjet",
+    "description": "A ynab like budgeting app.",
+    "repository_topics": []
+  },
+  {
+    "name": "fyne",
+    "url": "https://github.com/lloydlobo/fyne",
+    "description": "fyne",
+    "repository_topics": []
+  },
+  {
+    "name": "doyouenglish",
+    "url": "https://github.com/lloydlobo/doyouenglish",
+    "description": "automate grammer fixes of your websites",
+    "repository_topics": []
+  },
+  {
+    "name": "thegameoflife",
+    "url": "https://github.com/lloydlobo/thegameoflife",
+    "description": "Game of life terminal emulation.",
+    "repository_topics": []
+  },
+  {
+    "name": "studybuddy",
+    "url": "https://github.com/lloydlobo/studybuddy",
+    "description": "Interactive note taking CLI application built with Go, Cobra, and promptui.",
+    "repository_topics": []
+  },
+  {
+    "name": "chip8",
+    "url": "https://github.com/lloydlobo/chip8",
+    "description": "A chip8 emulator powered by Go and SDL2.",
+    "repository_topics": []
+  },
+  {
+    "name": "fmtdot",
+    "url": "https://github.com/lloydlobo/fmtdot",
+    "description": "fmtdot formats all files with given extension in a directory.",
+    "repository_topics": []
+  },
+  {
+    "name": "pswdhash",
+    "url": "https://github.com/lloydlobo/pswdhash",
+    "description": "pswdhash CLI hashes passwords using bcrypt.",
+    "repository_topics": []
+  },
+  {
+    "name": "bak",
+    "url": "https://github.com/lloydlobo/bak",
+    "description": "backup files in the current directory to a location",
+    "repository_topics": []
+  },
+  {
+    "name": "prep",
+    "url": "https://github.com/lloydlobo/prep",
+    "description": "prep prepares CLI windows automation to run, test, and build from project directory source files.",
+    "repository_topics": []
+  },
+  {
+    "name": "robotgo",
+    "url": "https://github.com/lloydlobo/robotgo",
+    "description": "Automation done right with robotgo.",
+    "repository_topics": []
+  },
+  {
+    "name": "okejoke",
+    "url": "https://github.com/lloydlobo/okejoke",
+    "description": "okejoke gathers jokes on the fly in your CLI.",
+    "repository_topics": []
+  },
+  {
+    "name": "progcli",
+    "url": "https://github.com/lloydlobo/progcli",
+    "description": "",
+    "repository_topics": []
+  },
+  {
+    "name": "go-dad-jokes-cli",
+    "url": "https://github.com/lloydlobo/go-dad-jokes-cli",
+    "description": "Go + Cobra for dad jokes API Cli usage",
+    "repository_topics": []
+  },
+  {
+    "name": "go-todo-client",
+    "url": "https://github.com/lloydlobo/go-todo-client",
+    "description": "Client side TODO app for Go backend server",
+    "repository_topics": []
+  },
+  {
+    "name": "hello-go",
+    "url": "https://github.com/lloydlobo/hello-go",
+    "description": "go starter repo test",
+    "repository_topics": []
+  },
+  {
+    "name": "go-greetings",
+    "url": "https://github.com/lloydlobo/go-greetings",
+    "description": "Tutorial: Create a Go module",
+    "repository_topics": []
+  },
+  {
+    "name": "bashingthrudashell",
+    "url": "https://github.com/lloydlobo/bashingthrudashell",
+    "description": "",
+    "repository_topics": []
+  },
+  {
+    "name": "fzz",
+    "url": "https://github.com/lloydlobo/fzz",
+    "description": "",
+    "repository_topics": []
+  },
+  {
+    "name": "calcy",
+    "url": "https://github.com/lloydlobo/calcy",
+    "description": "A calculator app for The Odin Project",
+    "repository_topics": [
+      "calculator",
+      "odin-project",
+      "regex",
+      "sveltekit",
+      "typed",
+      "typescript"
+    ]
+  },
+  {
+    "name": "progress",
+    "url": "https://github.com/lloydlobo/progress",
+    "description": "A tool to stay motivated and fulfill the dictum of progress over perfection. You are already perfect. What you are going through is required for what you aspire to be. And finally to know is-ness. That's a fancy one huh?",
+    "repository_topics": ["progress", "projects", "timeline"]
+  },
+  {
+    "name": "fem-splitter",
+    "url": "https://github.com/lloydlobo/fem-splitter",
+    "description": "Got to split money while tipping? Splitter to the rescue! A Frontend Mentor challenge Project",
+    "repository_topics": [
+      "challenge",
+      "fem",
+      "frontend-mentor",
+      "money",
+      "svelte",
+      "tip-calculator"
+    ]
+  },
+  {
+    "name": "test",
+    "url": "https://github.com/lloydlobo/test",
+    "description": "test repository",
+    "repository_topics": []
+  },
+  {
+    "name": ".dotfiles",
+    "url": "https://github.com/lloydlobo/.dotfiles",
+    "description": "",
+    "repository_topics": []
+  },
+  {
+    "name": "astronvim_config",
+    "url": "https://github.com/lloydlobo/astronvim_config",
+    "description": "Astro Nvim Config Files",
+    "repository_topics": []
+  },
+  {
+    "name": "wasm-game-of-life",
+    "url": "https://github.com/lloydlobo/wasm-game-of-life",
+    "description": "Classic Game Of Life built in WebAssembly. Rust + JavaScript on the Web.",
+    "repository_topics": []
+  },
+  {
+    "name": "tense-text-transform",
+    "url": "https://github.com/lloydlobo/tense-text-transform",
+    "description": "Change the tense of your sentences with this simple app.",
+    "repository_topics": [
+      "grammar",
+      "natural-language-processing",
+      "nlp",
+      "tenses",
+      "text-processing"
+    ]
+  },
+  {
+    "name": "zoomies",
+    "url": "https://github.com/lloydlobo/zoomies",
+    "description": "",
+    "repository_topics": []
+  },
+  {
+    "name": "rust-node_use-cases",
+    "url": "https://github.com/lloydlobo/rust-node_use-cases",
+    "description": "A practical use-case of using Rust from Node.  Benchmark the classical Fibonacci Sequence with a million runs. Add any function you'd like.",
+    "repository_topics": [
+      "benchmark",
+      "ffi",
+      "ffi-napi",
+      "fibonacci",
+      "node",
+      "rust",
+      "rust-lang"
+    ]
+  },
+  {
+    "name": "api",
+    "url": "https://github.com/lloydlobo/api",
+    "description": "",
+    "repository_topics": [
+      "api",
+      "axios",
+      "cheerio",
+      "express",
+      "nodejs",
+      "typescript",
+      "heroku-deployment"
+    ]
+  },
+  {
+    "name": "quicknote",
+    "url": "https://github.com/lloydlobo/quicknote",
+    "description": "Dev Notes with schemas built with Dendron",
+    "repository_topics": []
+  },
+  {
+    "name": "live-api",
+    "url": "https://github.com/lloydlobo/live-api",
+    "description": "Demo API to host on RapidAPI",
+    "repository_topics": [
+      "api",
+      "axios",
+      "cheerio",
+      "concurrently",
+      "express",
+      "nodejs",
+      "nodemon",
+      "typescript",
+      "rapidapi"
+    ]
+  },
+  {
+    "name": "sortviz",
+    "url": "https://github.com/lloydlobo/sortviz",
+    "description": "Vizualize sorting algorithms in slow motion",
+    "repository_topics": []
+  },
+  {
+    "name": "chat-decentralized",
+    "url": "https://github.com/lloydlobo/chat-decentralized",
+    "description": "A decentralized chat room using Gun.js",
+    "repository_topics": [
+      "chat",
+      "chat-app",
+      "decentralized-applications",
+      "gunjs",
+      "svelete"
+    ]
+  },
+  {
+    "name": "blog",
+    "url": "https://github.com/lloydlobo/blog",
+    "description": "",
+    "repository_topics": []
+  },
+  {
+    "name": "neura-driver",
+    "url": "https://github.com/lloydlobo/neura-driver",
+    "description": "A simple self-driving car application with a neural network model.",
+    "repository_topics": [
+      "javascript",
+      "machine-learning",
+      "machine-learning-algorithms",
+      "neural-network",
+      "self-driving-cars",
+      "svelte",
+      "typescript",
+      "vite",
+      "webapp"
+    ]
+  },
+  {
+    "name": "fem-tip-calculator-app",
+    "url": "https://github.com/lloydlobo/fem-tip-calculator-app",
+    "description": "Your challenge is to build out this tip calculator app and get it looking as close to the design as possible.",
+    "repository_topics": ["calculator", "frontend-mentor"]
+  },
+  {
+    "name": "geomeasure",
+    "url": "https://github.com/lloydlobo/geomeasure",
+    "description": "Geomeasure measures distance using GPS and that too without without any API!",
+    "repository_topics": [
+      "distance",
+      "gps-location",
+      "app",
+      "javascript",
+      "mobile-app",
+      "noapi",
+      "typescript",
+      "mathematics"
+    ]
+  },
+  {
+    "name": "pwa-starter",
+    "url": "https://github.com/lloydlobo/pwa-starter",
+    "description": "Starter kit to build a quick PWA that aligns with lighthouse's performance checks",
+    "repository_topics": []
+  },
+  {
+    "name": "cli-devquiz",
+    "url": "https://github.com/lloydlobo/cli-devquiz",
+    "description": "",
+    "repository_topics": []
+  },
+  {
+    "name": "odin-recipes",
+    "url": "https://github.com/lloydlobo/odin-recipes",
+    "description": "Odin's Recipes is a community-driven food brand providing trusted resources to home cooks. Cooks who are feeling adventurous and ready to cook up a storm.",
+    "repository_topics": [
+      "recipes",
+      "recipe-website",
+      "the-odin-project",
+      "html5",
+      "css",
+      "javascript"
+    ]
+  },
+  {
+    "name": "odin-thors-landing",
+    "url": "https://github.com/lloydlobo/odin-thors-landing",
+    "description": "Like Thor's mighty hammer, wield the power of security for your crypto needs. Back up your wallet and leave it to Thor to protect it at all costs.",
+    "repository_topics": [
+      "landing-page",
+      "website",
+      "web",
+      "html-css-javascript",
+      "theodinproject"
+    ]
+  },
+  {
+    "name": "keybindings",
+    "url": "https://github.com/lloydlobo/keybindings",
+    "description": "",
+    "repository_topics": []
+  },
+  {
+    "name": "articles",
+    "url": "https://github.com/lloydlobo/articles",
+    "description": "",
+    "repository_topics": []
+  }
 ]

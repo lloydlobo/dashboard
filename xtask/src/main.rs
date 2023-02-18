@@ -2,12 +2,12 @@
 
 use std::{
     env, fs,
-    io::Write,
+    io::{self, Write},
     path::{Path, PathBuf},
     process::{Command, ExitStatus, Stdio},
 };
 
-use anyhow::anyhow;
+use anyhow::{anyhow, Context};
 use man::prelude::*;
 
 type Result<T, E> = anyhow::Result<T, E>;
@@ -27,6 +27,7 @@ fn run() -> Result<(), DynError> {
     match task.as_deref() {
         Some("dist") => run_dist()?,
         Some("doc") => run_dist_doc()?,
+        Some("parse-json") => run_parse_json()?,
         _ => print_help(),
     }
     Ok(())
@@ -43,8 +44,45 @@ USAGE:
 ARGS:
     dist            builds application and man pages
     doc             builds rustdoc documentation
+    parse-json      parse crate dashboard output to custom json
 "#
     )
+}
+
+// ```sh
+// Append to the given files, do not overwrite:
+// echo "example" | tee -a path/to/file
+// Print standard input to the terminal, and also pipe it into another program for further processing:
+// echo "example" | tee /dev/tty | xargs printf "[%s]"
+// Create a directory called "example", count the number of characters in "example" and write "example" to the terminal:
+// echo "example" | tee >(xargs mkdir) >(wc -c)
+// let cargo: String = env::var("CARGO").unwrap_or_else(|_| "cargo".to_string());
+// ```
+fn run_parse_json() -> Result<(), DynError> {
+    // Fetches the environment variable `key` from the current process.
+    let python3: String = env::var("python3").unwrap_or_else(|_| "python3".to_string());
+    let cmd1 = Command::new(python3)
+        .current_dir(project_root())
+        .args(["scripts/parse.py"])
+        .stdout(Stdio::piped())
+        .spawn()
+        .with_context(|| "Failed to spawn process")?;
+    if let Some(err) = cmd1.stderr {
+        Err(anyhow!("`python3 scripts/parse.py` failed: {err:?}", err = err))?
+    };
+    // Read from standard input and write to standard output and files (or commands).
+    // Copy standard input to each file, and also to standard output:
+    let cmd2 = Command::new("tee")
+        .arg("parsed.json")
+        .stdin(cmd1.stdout.unwrap())
+        .spawn()
+        .with_context(|| "Failed to spawn process")?;
+
+    let output = cmd2.wait_with_output().with_context(|| "Failed to wait for process")?;
+    let buf: &[u8] = &output.stdout;
+    io::stdout().lock().write_all(buf).with_context(|| "Failed to write to stdout")?;
+
+    Ok(())
 }
 
 fn project_root() -> PathBuf {
